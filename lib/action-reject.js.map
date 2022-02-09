@@ -1,0 +1,1 @@
+{"version":3,"file":"action-reject.js","sourceRoot":"","sources":["../src/action-reject.ts"],"names":[],"mappings":";;;AAAA,qCAAkC;AAElC,MAAa,eAAgB,SAAQ,eAAM;IAG1C,YAAY,GAAU;QACrB,KAAK,EAAE,CAAC;QACR,IAAI,CAAC,IAAI,GAAG,eAAe,CAAC;QAC5B,IAAI,CAAC,GAAG,GAAG,GAAG,CAAC;IAChB,CAAC;IAES,KAAK,CAAC,OAAO,CAAC,OAAY;QACnC,MAAM,IAAI,CAAC,GAAG,CAAC;IAChB,CAAC;CACD;AAZD,0CAYC"}
