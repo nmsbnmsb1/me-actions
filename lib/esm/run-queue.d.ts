@@ -12,6 +12,7 @@ export declare class RunQueue extends CompositeAction {
     addChild(...as: Action[]): this;
     numChildren(): number;
     lock(): void;
+    isLocked(): boolean;
     protected doStart(context: any): Promise<void>;
     private next;
     protected doStop(context: any): void;

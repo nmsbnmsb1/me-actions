@@ -1,5 +1,5 @@
 import { IDeferer, IContext, IResult, IWatcher, Action, CompositeAction } from './action';
-import { ActionForFunc } from './action-func';
+import { ActionForFunc, IFunc } from './action-func';
 import { ActionForResolve } from './action-resolve';
 import { ActionForReject } from './action-reject';
 import { ActionForSleep } from './action-sleep';
@@ -16,6 +16,7 @@ export {
 	IWatcher,
 	Action,
 	CompositeAction,
+	IFunc,
 	ActionForFunc,
 	ActionForResolve,
 	ActionForReject,

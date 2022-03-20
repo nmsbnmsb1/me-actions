@@ -17,7 +17,7 @@ export class RunAll extends CompositeAction {
 		let err: any;
 		let w;
 		for (const action of this.children) {
-			action.start(context).watchFinally(
+			action.start(context).watchFinallyAtFirst(
 				w ||
 					(w = (result: IResult) => {
 						if (!this.isPending()) {

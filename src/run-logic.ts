@@ -30,7 +30,7 @@ export class RunLogic extends CompositeAction {
 		let rejectedCount = 0;
 		let w;
 		for (const action of this.children) {
-			action.start(context).watchFinally(
+			action.start(context).watchFinallyAtFirst(
 				w ||
 					(w = (result: IResult) => {
 						if (!this.isPending()) {

@@ -41,6 +41,9 @@ export class RunQueue extends CompositeAction {
 		if (this.isIdle()) this.stop();
 		else if (this.isPending() && this.children.length === 0 && this.running.length === 0) this.stop();
 	}
+	public isLocked() {
+		return this.locked;
+	}
 	//
 	protected async doStart(context: any) {
 		if (this.closeMode === 'auto' && this.children.length <= 0) {
@@ -64,7 +67,7 @@ export class RunQueue extends CompositeAction {
 			if (!action.isIdle()) continue;
 			this.running.push(action);
 			//
-			action.start(this.result.context).watchFinally(
+			action.start(this.result.context).watchFinallyAtFirst(
 				w ||
 					(w = (result: IResult) => {
 						if (!this.isPending()) {

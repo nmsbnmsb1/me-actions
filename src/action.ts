@@ -5,7 +5,7 @@ export interface IDeferer {
 }
 
 export interface IContext {
-	logger?: (level: string, msg: any, context?: IContext, action?: Action, info?: any) => void;
+	logger?: (level: string, msg: any, result?: IResult) => void;
 	datas?: { [name: string]: any };
 	[name: string]: any;
 }
@@ -15,6 +15,7 @@ export interface IResult {
 	context?: any;
 	data?: any;
 	err?: any;
+	[name: string]: any;
 }
 
 export type IWatcher = (result?: IResult) => any;
@@ -26,7 +27,6 @@ export class Action {
 	public static StatusRejected = 'rejected';
 	public static StatusStopped = 'stopped';
 
-	public static efn = () => {};
 	public static isError = (e: any) => Object.prototype.toString.call(e) === '[object Error]' || e instanceof Error;
 	public static defer(): IDeferer {
 		const d: IDeferer = {} as any;
@@ -38,13 +38,10 @@ export class Action {
 	}
 
 	protected name: string;
-	protected aliasName: string;
-	protected logInfo: any;
 	protected status: string = Action.StatusIdle;
 	protected context?: any;
 	protected result: IResult;
-	//事件
-	private ep!: IDeferer;
+	protected watchers: { w: IWatcher; type: 'resolve' | 'reject' | 'finally' }[];
 
 	constructor() {
 		this.name = 'action';
@@ -59,41 +56,6 @@ export class Action {
 	public getName() {
 		return this.name;
 	}
-	public setAliasName(aliasName: string) {
-		this.aliasName = aliasName;
-		return this;
-	}
-	public getAliasName() {
-		return this.aliasName;
-	}
-	public setLogInfo(info: any) {
-		this.logInfo = info;
-		return this;
-	}
-	public getLogInfo() {
-		return this.logInfo;
-	}
-	// public setPath(path: string) {
-	// 	this.path = path;
-	// 	return this;
-	// }
-	// public getPath() {
-	// 	let fullPath = '';
-	// 	//
-	// 	let p: Action = this;
-	// 	while (p) {
-	// 		let ppath = '';
-	// 		if (p.path) ppath = p.path;
-	// 		if (p.name) ppath = !ppath ? p.name : `${ppath}/${p.name}`;
-	// 		if (ppath) fullPath = !fullPath ? ppath : `${ppath}/${fullPath}`;
-	// 		//
-	// 		if (p.path) break;
-	// 		p = p.parent;
-	// 	}
-	// 	//
-	// 	return fullPath;
-	// }
-	//
 	public setContext(context: any) {
 		this.context = context;
 		return this;
@@ -126,24 +88,37 @@ export class Action {
 	}
 
 	// 事件
-	private getep() {
-		if (!this.ep) this.ep = Action.defer();
-		return this.ep;
-	}
 	public watchResolved(watcher: IWatcher) {
-		this.getep().p.then(watcher, Action.efn);
+		(this.watchers || (this.watchers = [])).push({ w: watcher, type: 'resolve' });
 		return this;
 	}
 	public watchRejected(watcher: IWatcher) {
-		this.getep().p.catch(watcher);
+		(this.watchers || (this.watchers = [])).push({ w: watcher, type: 'reject' });
 		return this;
 	}
 	public watchFinally(watcher: IWatcher) {
-		this.getep().p.then(watcher, watcher);
+		(this.watchers || (this.watchers = [])).push({ w: watcher, type: 'finally' });
+		return this;
+	}
+	public watchFinallyAtFirst(watcher: IWatcher) {
+		(this.watchers || (this.watchers = [])).unshift({ w: watcher, type: 'finally' });
 		return this;
 	}
 
 	//
+	private logErr() {
+		if (this.context && this.context.logger && (!this.context.errs || this.context.errs.indexOf(this.result.err) < 0)) {
+			(this.context.errs || (this.context.errs = [])).push(this.result.err);
+			this.context.logger('error', this.result.err, this.result);
+		}
+	}
+	private dispatch(type: 'resolve' | 'reject') {
+		for (let d of this.watchers) {
+			if (d.type === type || d.type === 'finally') d.w(this.result);
+		}
+		this.watchers = undefined;
+	}
+
 	public start(context?: any) {
 		if (!this.isIdle()) return this;
 		//
@@ -160,18 +135,15 @@ export class Action {
 				this.result.data = data;
 				this.status = Action.StatusResolved;
 				this.doStop(this.result.context);
+				if (data && this.name && this.context) (this.context.datas || (this.context.datas = {}))[this.name] = data;
+				if (this.watchers) this.dispatch('resolve');
 				//
-				if (data && this.aliasName && this.context) {
-					(this.context.datas || (this.context.datas = {}))[this.aliasName] = data;
-				}
-				if (this.ep) this.ep.resolve(this.result);
 			} else {
 				this.result.err = data;
 				this.status = Action.StatusRejected;
 				this.doStop(this.result.context);
-				//
-				this.logErr('then');
-				if (this.ep) this.ep.reject(this.result);
+				this.logErr();
+				if (this.watchers) this.dispatch('reject');
 			}
 		};
 		const cat = (err: Error) => {
@@ -180,9 +152,8 @@ export class Action {
 			this.result.err = err || new Error('rejected');
 			this.status = Action.StatusRejected;
 			this.doStop(this.result.context);
-			//
-			this.logErr('catch');
-			if (this.ep) this.ep.reject(this.result);
+			this.logErr();
+			if (this.watchers) this.dispatch('reject');
 		};
 		this.doStart(this.result.context).then(then, cat);
 		//
@@ -190,12 +161,6 @@ export class Action {
 	}
 	protected doStart(context: any): Promise<any> {
 		return Promise.resolve();
-	}
-	protected logErr(time: 'then' | 'catch' | 'stop') {
-		if (this.context && this.context.logger && (!this.context.errs || this.context.errs.indexOf(this.result.err) < 0)) {
-			(this.context.errs || (this.context.errs = [])).push(this.result.err);
-			this.context.logger('error', this.result.err, this.context, this, this.logInfo);
-		}
 	}
 	public async startAsync(context?: any) {
 		if (this.isIdle()) {
@@ -214,9 +179,8 @@ export class Action {
 			this.result.err = new Error('Stopped');
 			this.status = Action.StatusStopped;
 			if (this.isPending()) this.doStop(this.result.context);
-			//
-			this.logErr('stop');
-			if (this.ep) this.ep.reject(this.result);
+			this.logErr();
+			if (this.watchers) this.dispatch('reject');
 		}
 		return this;
 	}
