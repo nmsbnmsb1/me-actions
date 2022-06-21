@@ -13,7 +13,7 @@ export class RunStep extends CompositeAction {
 	protected queueName: string;
 	protected queueAction!: RunQueue;
 	protected onBeforeStep: IOnStep;
-	protected handleFactory: IHandlerFactory;
+	protected handlerFactory: IHandlerFactory;
 	protected onAfterStep: IOnStep;
 
 	constructor(
@@ -22,7 +22,7 @@ export class RunStep extends CompositeAction {
 		limit: number = 0,
 		to: number = 0,
 		onBeforeStep: IOnStep = undefined as any,
-		handleFactory: IHandlerFactory = undefined as any,
+		handlerFactory: IHandlerFactory = undefined as any,
 		onAfterStep: IOnStep = undefined as any,
 		handleErr: 0 | 1 | 2 = 1
 	) {
@@ -33,7 +33,7 @@ export class RunStep extends CompositeAction {
 		this.limit = limit;
 		this.to = to;
 		this.onBeforeStep = onBeforeStep;
-		this.handleFactory = handleFactory;
+		this.handlerFactory = handlerFactory;
 		this.onAfterStep = onAfterStep;
 	}
 	public setQueueName(name: string) {
@@ -58,7 +58,7 @@ export class RunStep extends CompositeAction {
 		limit: number = 0,
 		to: number = 0,
 		onBeforeStep?: IOnStep,
-		handleFactory?: IHandlerFactory,
+		handlerFactory?: IHandlerFactory,
 		onAfterStep?: IOnStep
 	) {
 		this.from = from;
@@ -66,7 +66,7 @@ export class RunStep extends CompositeAction {
 		this.limit = limit;
 		this.to = to;
 		this.onBeforeStep = onBeforeStep as any;
-		this.handleFactory = handleFactory as any;
+		this.handlerFactory = handlerFactory as any;
 		this.onAfterStep = onAfterStep as any;
 		return this;
 	}
@@ -118,7 +118,7 @@ export class RunStep extends CompositeAction {
 			count += stepOptions.to - stepOptions.from + 1;
 			stepOptions.count = count;
 			for (let i = stepOptions.from; i <= stepOptions.to; i++) {
-				this.queueAction.addChild(this.handleFactory(i, stepOptions, this, context));
+				this.queueAction.addChild(this.handlerFactory(i, stepOptions, this, context));
 				// console.log(i, options);
 				// if (this.limit > 0 && count >= this.limit) { options.to = i; break; }
 			}

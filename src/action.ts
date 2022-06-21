@@ -113,12 +113,13 @@ export class Action {
 		}
 	}
 	private dispatch(type: 'resolve' | 'reject') {
-		for (let d of this.watchers) {
-			if (d.type === type || d.type === 'finally') d.w(this.result);
+		for (let w of this.watchers) {
+			if (w.type === type || w.type === 'finally') w.w(this.result);
 		}
 		this.watchers = undefined;
 	}
 
+	//执行
 	public start(context?: any) {
 		if (!this.isIdle()) return this;
 		//

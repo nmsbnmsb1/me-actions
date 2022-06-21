@@ -19,14 +19,14 @@ export declare class RunStep extends CompositeAction {
     protected queueName: string;
     protected queueAction: RunQueue;
     protected onBeforeStep: IOnStep;
-    protected handleFactory: IHandlerFactory;
+    protected handlerFactory: IHandlerFactory;
     protected onAfterStep: IOnStep;
-    constructor(from?: number, step?: number, limit?: number, to?: number, onBeforeStep?: IOnStep, handleFactory?: IHandlerFactory, onAfterStep?: IOnStep, handleErr?: 0 | 1 | 2);
+    constructor(from?: number, step?: number, limit?: number, to?: number, onBeforeStep?: IOnStep, handlerFactory?: IHandlerFactory, onAfterStep?: IOnStep, handleErr?: 0 | 1 | 2);
     setQueueName(name: string): this;
     setStep(step: number): this;
     setLimit(limit: number): this;
     setTo(to: number): this;
-    setValues(from?: number, step?: number, limit?: number, to?: number, onBeforeStep?: IOnStep, handleFactory?: IHandlerFactory, onAfterStep?: IOnStep): this;
+    setValues(from?: number, step?: number, limit?: number, to?: number, onBeforeStep?: IOnStep, handlerFactory?: IHandlerFactory, onAfterStep?: IOnStep): this;
     setOnBeforeStep(fn: IOnStep): this;
     setOnAfterStep(fn: IOnStep): this;
     end(): this;
