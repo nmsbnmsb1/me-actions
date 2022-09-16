@@ -65,3 +65,4 @@ typings/
 refs
 commit
 package-lock.json
+pnpm-lock.yaml
