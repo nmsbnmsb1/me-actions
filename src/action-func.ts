@@ -8,11 +8,9 @@ export class ActionForFunc extends Action {
 
 	constructor(doStart?: IFunc, doStop?: IFunc) {
 		super();
-		this.name = 'action-func';
 		this.iDoStart = doStart;
 		this.iDoStop = doStop;
 	}
-
 	public setDoStart(f: IFunc) {
 		this.iDoStart = f;
 		return this;
@@ -22,11 +20,11 @@ export class ActionForFunc extends Action {
 		return this;
 	}
 
-	protected doStart(context: any) {
+	protected async doStart(context: any) {
 		return this.iDoStart(context, this);
 	}
 
 	protected doStop(context: any) {
-		if (this.iDoStop) this.iDoStop(context, this);
+		if (this.iDoStop) return this.iDoStop(context, this);
 	}
 }

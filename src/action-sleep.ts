@@ -1,24 +1,23 @@
-import { Action, IDeferer } from './action';
+import { Action } from './action';
 
 export class ActionForSleep extends Action {
 	private timeout: number;
 	private timer: any;
-	private tp: IDeferer;
 
 	constructor(timeout: number) {
 		super();
-		this.name = 'action-sleep';
 		this.timeout = timeout;
 	}
 
-	protected async doStart(context: any) {
-		this.tp = Action.defer();
-		this.timer = setTimeout(this.tp.resolve, this.timeout);
-		await this.tp.p;
+	protected async doStart() {
+		let rp = this.getRP();
+		this.timer = setTimeout(rp.resolve, this.timeout);
+		await rp.p;
 	}
 
-	protected doStop(context: any) {
-		clearTimeout(this.timer);
-		if (this.tp) this.tp.reject();
+	protected doStop() {
+		if (this.timer) clearTimeout(this.timer);
+		this.timer = undefined;
+		this.endRP();
 	}
 }

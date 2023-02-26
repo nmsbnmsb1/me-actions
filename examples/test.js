@@ -1,6 +1,11 @@
-const { RunOne } = require('../lib/run-one');
-const { RunFunc } = require('../lib/run-func');
-const { RunAll } = require('../lib/run-all');
+// const { RunOne } = require('../lib/run-one');
+// const { RunFunc } = require('../lib/run-func');
+// const { RunAll } = require('../lib/run-all');
+
+// let arr = [0, 1, 2];
+// arr.splice(1, 0, 0.5);
+// console.log(arr);
+// return;
 
 let context = { datas: {}, errs: {} };
 let act = new RunOne(true)

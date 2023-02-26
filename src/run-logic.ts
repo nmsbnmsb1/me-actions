@@ -1,16 +1,16 @@
-import { Action, CompositeAction, IResult } from './action';
+import { Action, CompositeAction } from './action';
+import { ActionStatus, ErrHandler } from './utils';
 
 export class RunLogic extends CompositeAction {
-	protected condition: string = Action.StatusResolved;
-	protected count: number = 1;
+	protected condition = ActionStatus.Resolved;
+	protected count = 1;
 
-	constructor(condition: string = Action.StatusResolved, count: number = 1, ...as: Action[]) {
-		super(0, ...as);
-		this.name = 'run-logic';
+	constructor(condition: number = ActionStatus.Resolved, count: number = 1) {
+		super(ErrHandler.Ignore);
 		this.condition = condition;
 		this.count = count;
 	}
-	public setCondition(condition: string) {
+	public setCondition(condition: number) {
 		this.condition = condition;
 		return this;
 	}
@@ -22,45 +22,43 @@ export class RunLogic extends CompositeAction {
 	protected async doStart(context: any) {
 		if (this.children.length === 0) return;
 		//
-		let p = Action.defer();
+		let rp = this.getRP();
 		let total = this.children.length;
 		let requiredCount = this.count === 0 ? total : this.count;
 		let doneCount = 0;
 		let resolvedCount = 0;
 		let rejectedCount = 0;
-		let w;
+		let w: (action: Action) => any;
 		for (const action of this.children) {
-			action.start(context).watchFinallyAtFirst(
+			action.start(context).watch(
 				w ||
-					(w = (result: IResult) => {
-						if (!this.isPending()) {
-							p.reject();
-							return;
-						}
+					(w = (action: Action) => {
+						if (!this.isPending()) return rp.reject();
 						//
 						doneCount++;
 						if (action.isResolved()) resolvedCount++;
-						if (action.isRejected()) rejectedCount++;
+						else if (action.isRejected()) rejectedCount++;
 						//
 						if (doneCount < requiredCount) return;
 						//
-						if (this.condition === Action.StatusResolved) {
+						if (this.condition === ActionStatus.Resolved) {
 							if (resolvedCount >= requiredCount) {
-								p.resolve();
+								rp.resolve();
 							} else {
-								p.reject(new Error(`rejected: ${resolvedCount} < ${requiredCount}`));
+								rp.reject(new Error(`Rejected: ${resolvedCount} < ${requiredCount}`));
 							}
-						} else if (this.condition === Action.StatusRejected) {
+						} else if (this.condition === ActionStatus.Rejected) {
 							if (rejectedCount >= requiredCount) {
-								p.reject(new Error(`rejected: ${rejectedCount} < ${requiredCount}`));
+								rp.reject(new Error(`Rejected: ${rejectedCount} < ${requiredCount}`));
 							} else {
-								p.resolve();
+								rp.resolve();
 							}
 						}
-					})
+					}),
+				0
 			);
 		}
 		//
-		await p.p;
+		await rp.p;
 	}
 }

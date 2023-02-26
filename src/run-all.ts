@@ -1,46 +1,39 @@
-import { Action, CompositeAction, IResult } from './action';
+import { Action, CompositeAction } from './action';
+import { ErrHandler } from './utils';
 
 export class RunAll extends CompositeAction {
-	//ignoreErr true,将不会产生任何错误,action的最后状态是resolved
-	//          false, action的最后状态可能是rejected
-	constructor(handleErr: 0 | 1 | 2 = 1, ...as: Action[]) {
-		super(handleErr, ...as);
-		this.name = 'run-all';
+	constructor(errHandler: number) {
+		super(errHandler);
 	}
-	//
+
 	protected async doStart(context: any) {
-		if (this.children.length === 0) return;
+		if (this.children.length <= 0) return;
 		//
-		let p = Action.defer();
-		let count = 0;
+		let rp = this.getRP();
 		let total = this.children.length;
-		let err: any;
-		let w;
+		let count = 0;
+		let w: (action: Action) => any;
+		let e: Error;
 		for (const action of this.children) {
-			action.start(context).watchFinallyAtFirst(
+			action.start(context).watch(
 				w ||
-					(w = (result: IResult) => {
-						if (!this.isPending()) {
-							p.reject();
-							return;
-						}
+					(w = (action: Action) => {
+						if (!this.isPending()) return rp.reject();
 						//
 						count++;
-						if (result.action.isRejected()) {
-							if (!err) err = result.err;
-							if (this.handleErr === 2) {
-								p.reject(err);
-								return;
-							}
+						if (action.isRejected()) {
+							if (!e) e = action.getError();
+							if (this.errHandler === ErrHandler.RejectImmediately) return rp.reject(e);
 						}
 						if (count >= total) {
-							if (err && this.handleErr > 0) p.reject(err);
-							else p.resolve();
+							if (e && this.errHandler === ErrHandler.RejectAllDone) rp.reject(e);
+							else rp.resolve();
 						}
-					})
+					}),
+				0
 			);
 		}
 		//
-		await p.p;
+		await rp.p;
 	}
 }

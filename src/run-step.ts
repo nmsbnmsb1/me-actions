@@ -1,33 +1,39 @@
 import { Action, CompositeAction } from './action';
 import { RunQueue } from './run-queue';
+import { ErrHandler } from './utils';
 
-export type IHandlerFactory = (i: number, stepOptions: { from: number; to: number; count: number }, caller?: RunStep, context?: any) => Action;
-export type IOnStep = (stepOptions: { from: number; to: number; count: number }, action?: RunStep, context?: any) => Promise<any>;
+export interface IStepOptions {
+	from: number;
+	to: number;
+	count: number;
+}
+export type IHandlerFactory = (i: number, context: any, caller: RunStep, stepOptions: IStepOptions) => Action;
+export type IOnStep = (context: any, caller: RunStep, stepOptions: IStepOptions) => Promise<any>;
 
 export class RunStep extends CompositeAction {
 	protected from: number;
 	protected step: number;
 	protected limit: number;
 	protected to: number;
-	protected endStep: boolean = false;
-	protected queueName: string;
-	protected queueAction!: RunQueue;
 	protected onBeforeStep: IOnStep;
 	protected handlerFactory: IHandlerFactory;
 	protected onAfterStep: IOnStep;
+	//
+	protected queueAction!: RunQueue;
+	protected queueName: string;
+	protected toStop: boolean = false;
 
 	constructor(
 		from: number = 0,
 		step: number = 0,
 		limit: number = 0,
 		to: number = 0,
-		onBeforeStep: IOnStep = undefined as any,
-		handlerFactory: IHandlerFactory = undefined as any,
-		onAfterStep: IOnStep = undefined as any,
-		handleErr: 0 | 1 | 2 = 1
+		onBeforeStep?: IOnStep,
+		handlerFactory?: IHandlerFactory,
+		onAfterStep?: IOnStep,
+		errHandler: number = ErrHandler.RejectAllDone
 	) {
-		super(handleErr);
-		this.name = 'run-step';
+		super(errHandler);
 		this.from = from;
 		this.step = step;
 		this.limit = limit;
@@ -36,112 +42,96 @@ export class RunStep extends CompositeAction {
 		this.handlerFactory = handlerFactory;
 		this.onAfterStep = onAfterStep;
 	}
-	public setQueueName(name: string) {
-		this.queueName = name;
-		return this;
-	}
-	public setStep(step: number) {
-		this.step = step;
-		return this;
-	}
-	public setLimit(limit: number) {
-		this.limit = limit;
-		return this;
-	}
-	public setTo(to: number) {
-		this.to = to;
-		return this;
-	}
-	public setValues(
-		from: number = 0,
-		step: number = 0,
-		limit: number = 0,
-		to: number = 0,
-		onBeforeStep?: IOnStep,
-		handlerFactory?: IHandlerFactory,
-		onAfterStep?: IOnStep
-	) {
+	public setValues(from: number = 0, step: number = 0, limit: number = 0, to: number = 0) {
 		this.from = from;
 		this.step = step;
 		this.limit = limit;
 		this.to = to;
-		this.onBeforeStep = onBeforeStep as any;
-		this.handlerFactory = handlerFactory as any;
-		this.onAfterStep = onAfterStep as any;
 		return this;
 	}
 	public setOnBeforeStep(fn: IOnStep) {
 		this.onBeforeStep = fn;
 		return this;
 	}
+	public setHandlerFactory(fn: IHandlerFactory) {
+		this.handlerFactory = fn;
+		return this;
+	}
 	public setOnAfterStep(fn: IOnStep) {
 		this.onAfterStep = fn;
 		return this;
 	}
-	public end() {
-		this.endStep = true;
+	public setQueueName(name: string) {
+		this.queueName = name;
+		return this;
+	}
+	public setToStop() {
+		this.toStop = true;
 		return this;
 	}
 	//
-	public addChild(...as: Action[]) {
-		if (this.queueAction) this.queueAction.addChild(...as);
+	public addChild(a: Action) {
+		if (this.queueAction && !this.toStop) this.queueAction.addChild(a);
 		return this;
 	}
 	public numChildren() {
 		return this.queueAction ? this.queueAction.numChildren() : 0;
 	}
-
 	//
 	protected async doStart(context: any) {
 		let count = 0;
-		let err: any;
+		let e: Error;
 		let current = this.from;
 		while (current <= this.to) {
-			const stepOptions: any = { from: current, to: this.step > 0 ? Math.min(current + this.step - 1, this.to) : this.to, count };
-			this.endStep = false;
+			this.toStop = false;
+			//1,3,5,10
+			const stepOptions: IStepOptions = { from: current, to: this.to, count };
+			//截断
+			if (this.step > 0) stepOptions.to = Math.min(current + this.step - 1, this.to);
+			//截断
+			if (this.limit > 0 && this.limit - count < stepOptions.to - stepOptions.from + 1) {
+				stepOptions.to = stepOptions.from + (this.limit - count) - 1;
+			}
 
 			// before
-			if (this.onBeforeStep) await this.onBeforeStep(stepOptions, this, context);
+			if (this.onBeforeStep) await this.onBeforeStep(context, this, stepOptions);
 			if (!this.isPending()) break;
-			if (this.endStep) {
-				if (this.onAfterStep) await this.onAfterStep(stepOptions, this, context);
+			if (this.toStop) {
+				if (this.onAfterStep) await this.onAfterStep(context, this, stepOptions);
 				break;
 			}
 
 			// pending
-			this.queueAction = new RunQueue(0, 'auto', this.handleErr);
+			stepOptions.count = count = count + (stepOptions.to - stepOptions.from + 1);
+			//
+			this.queueAction = new RunQueue(0, RunQueue.StopHandlerAuto, this.errHandler);
+			(this.queueAction as any).parent = this;
 			if (this.queueName) this.queueAction.setName(this.queueName);
-			this.children.push(this.queueAction);
-			if (this.limit > 0 && this.limit - count < stepOptions.to - stepOptions.from + 1) {
-				stepOptions.to = stepOptions.from + (this.limit - count) - 1;
-			}
-			count += stepOptions.to - stepOptions.from + 1;
-			stepOptions.count = count;
 			for (let i = stepOptions.from; i <= stepOptions.to; i++) {
-				this.queueAction.addChild(this.handlerFactory(i, stepOptions, this, context));
+				this.queueAction.addChild(this.handlerFactory(i, context, this, stepOptions));
 				// console.log(i, options);
 				// if (this.limit > 0 && count >= this.limit) { options.to = i; break; }
 			}
 			await this.queueAction.startAsync(context);
-			this.children.length = 0;
+			//
 			if (!this.isPending()) break;
 			if (this.queueAction.isRejected()) {
-				if (!err) err = this.queueAction.getResult().err;
-				if (this.handleErr === 2) throw err;
+				if (!e) e = this.queueAction.getError();
+				if (this.errHandler === ErrHandler.RejectImmediately) throw e;
 			}
 			this.queueAction = undefined;
 
 			// after
-			if (this.onAfterStep) await this.onAfterStep(stepOptions, this, context);
+			if (this.onAfterStep) await this.onAfterStep(context, this, stepOptions);
 			if (!this.isPending()) break;
-			if (this.endStep) break;
+			if (this.toStop) break;
 			if (this.limit > 0 && count >= this.limit) break;
 			//
 			current = stepOptions.to + 1;
 			if (current > this.to) break;
 		}
 		// console.log("done");
-		if (err && this.handleErr > 0) throw err;
+		if (e && this.errHandler !== ErrHandler.Ignore) throw e;
 	}
 
 	protected doStop(context: any) {

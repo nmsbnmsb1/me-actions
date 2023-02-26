@@ -1,22 +1,28 @@
-import { Action, CompositeAction, IResult } from './action';
+import { CompositeAction } from './action';
+import { ErrHandler } from './utils';
 
 export class RunOne extends CompositeAction {
-	//
-	constructor(handleErr: 0 | 1 | 2 = 0, ...as: Action[]) {
-		super(handleErr, ...as);
-		this.name = 'run-one';
+	constructor(errHandler: number) {
+		super(errHandler);
 	}
-	//
+
 	protected async doStart(context: any) {
+		let e: Error;
 		while (this.children.length > 0) {
-			const action: Action = this.children[0];
-			const result: IResult = await action.startAsync(context);
+			let action = this.children.shift();
+			//
+			await action.startAsync(context);
+			//
 			if (!this.isPending()) return;
 			//
-			this.children.shift();
-			if (action.isRejected() && this.handleErr > 0) {
-				throw result.err;
+			if (action.isRejected()) {
+				if (this.errHandler === ErrHandler.RejectImmediately) throw action.getError();
+				else if (!e) {
+					e = action.getError();
+				}
 			}
 		}
+		//
+		if (e && this.errHandler === ErrHandler.RejectAllDone) throw e;
 	}
 }

@@ -1,5 +1,5 @@
-import { Action, CompositeAction } from './action';
+import { CompositeAction } from './action';
 export declare class RunOne extends CompositeAction {
-    constructor(handleErr?: 0 | 1 | 2, ...as: Action[]);
+    constructor(errHandler: number);
     protected doStart(context: any): Promise<void>;
 }

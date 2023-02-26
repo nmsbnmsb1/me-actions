@@ -5,11 +5,10 @@ export class ActionForReject extends Action {
 
 	constructor(err: Error) {
 		super();
-		this.name = 'action-reject';
 		this.err = err;
 	}
 
-	protected async doStart(context: any) {
+	protected async doStart() {
 		throw this.err;
 	}
 }

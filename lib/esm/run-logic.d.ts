@@ -1,9 +1,9 @@
-import { Action, CompositeAction } from './action';
+import { CompositeAction } from './action';
 export declare class RunLogic extends CompositeAction {
-    protected condition: string;
+    protected condition: number;
     protected count: number;
-    constructor(condition?: string, count?: number, ...as: Action[]);
-    setCondition(condition: string): this;
+    constructor(condition?: number, count?: number);
+    setCondition(condition: number): this;
     setCount(count: number): this;
     protected doStart(context: any): Promise<void>;
 }
