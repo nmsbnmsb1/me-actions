@@ -10,5 +10,5 @@ const context = { datas: {}, errs: {} };
 		console.log('stop');
 	}, 1000);
 	await a1.startAsync(context);
-	console.log('final', a1.getResult());
+	console.log('final', a1);
 })();

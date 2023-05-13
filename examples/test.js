@@ -28,7 +28,7 @@ let act = new RunOne(true)
 
 			await a1.p();
 
-			console.log(a1.getResult());
+			console.log(a1);
 		}),
 		new RunFunc(async () => {
 			return new Promise((resolve) => {
