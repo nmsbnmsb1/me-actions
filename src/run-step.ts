@@ -8,8 +8,8 @@ export interface IStepOptions {
 	to: number;
 	count: number;
 }
-export type IHandlerFactory = (i: number, stepOptions: IStepOptions, context: any, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
-export type IOnStep = (stepOptions: IStepOptions, context: any, caller: RunStep) => Promise<any>;
+export type IHandlerFactory = (context: any, i: number, stepOptions: IStepOptions, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
+export type IOnStep = (context: any, stepOptions: IStepOptions, caller: RunStep) => Promise<any>;
 
 export class RunStep extends CompositeAction {
 	protected from: number;
@@ -95,10 +95,10 @@ export class RunStep extends CompositeAction {
 			}
 
 			// before
-			if (this.onBeforeStep) await this.onBeforeStep(stepOptions, context, this);
+			if (this.onBeforeStep) await this.onBeforeStep(context, stepOptions, this);
 			if (!this.isPending()) break;
 			if (this.toStop) {
-				if (this.onAfterStep) await this.onAfterStep(stepOptions, context, this);
+				if (this.onAfterStep) await this.onAfterStep(context, stepOptions, this);
 				break;
 			}
 
@@ -109,7 +109,7 @@ export class RunStep extends CompositeAction {
 			(this.queueAction as any).parent = this;
 			if (this.queueName) this.queueAction.setName(this.queueName);
 			for (let i = stepOptions.from; i <= stepOptions.to; i++) {
-				let result = this.handlerFactory(i, stepOptions, context, this);
+				let result = this.handlerFactory(context, i, stepOptions, this);
 				let af: Action | IFunc;
 				let a: Action;
 				//
@@ -132,7 +132,7 @@ export class RunStep extends CompositeAction {
 			this.queueAction = undefined;
 
 			// after
-			if (this.onAfterStep) await this.onAfterStep(stepOptions, context, this);
+			if (this.onAfterStep) await this.onAfterStep(context, stepOptions, this);
 			if (!this.isPending()) break;
 			if (this.toStop) break;
 			if (this.limit > 0 && count >= this.limit) break;

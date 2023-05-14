@@ -6,8 +6,8 @@ export interface IStepOptions {
     to: number;
     count: number;
 }
-export type IHandlerFactory = (i: number, stepOptions: IStepOptions, context: any, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
-export type IOnStep = (stepOptions: IStepOptions, context: any, caller: RunStep) => Promise<any>;
+export type IHandlerFactory = (context: any, i: number, stepOptions: IStepOptions, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
+export type IOnStep = (context: any, stepOptions: IStepOptions, caller: RunStep) => Promise<any>;
 export declare class RunStep extends CompositeAction {
     protected from: number;
     protected step: number;
