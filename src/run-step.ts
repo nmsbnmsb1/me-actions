@@ -1,4 +1,5 @@
 import { Action, CompositeAction } from './action';
+import { ActionForFunc, IFunc } from './action-func';
 import { RunQueue } from './run-queue';
 import { ErrHandler } from './utils';
 
@@ -7,7 +8,7 @@ export interface IStepOptions {
 	to: number;
 	count: number;
 }
-export type IHandlerFactory = (i: number, stepOptions: IStepOptions, context: any, caller: RunStep) => Action;
+export type IHandlerFactory = (i: number, stepOptions: IStepOptions, context: any, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
 export type IOnStep = (stepOptions: IStepOptions, context: any, caller: RunStep) => Promise<any>;
 
 export class RunStep extends CompositeAction {
@@ -108,7 +109,16 @@ export class RunStep extends CompositeAction {
 			(this.queueAction as any).parent = this;
 			if (this.queueName) this.queueAction.setName(this.queueName);
 			for (let i = stepOptions.from; i <= stepOptions.to; i++) {
-				this.queueAction.addChild(this.handlerFactory(i, stepOptions, context, this));
+				let result = this.handlerFactory(i, stepOptions, context, this);
+				let af: Action | IFunc;
+				let a: Action;
+				//
+				if (result instanceof Promise) af = await result;
+				else af = result;
+				if (af instanceof Action) a = result as Action;
+				else a = new ActionForFunc(af);
+				//
+				this.queueAction.addChild(a);
 				// console.log(i, options);
 				// if (this.limit > 0 && count >= this.limit) { options.to = i; break; }
 			}

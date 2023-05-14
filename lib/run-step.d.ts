@@ -1,11 +1,12 @@
 import { Action, CompositeAction } from './action';
+import { IFunc } from './action-func';
 import { RunQueue } from './run-queue';
 export interface IStepOptions {
     from: number;
     to: number;
     count: number;
 }
-export type IHandlerFactory = (i: number, stepOptions: IStepOptions, context: any, caller: RunStep) => Action;
+export type IHandlerFactory = (i: number, stepOptions: IStepOptions, context: any, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
 export type IOnStep = (stepOptions: IStepOptions, context: any, caller: RunStep) => Promise<any>;
 export declare class RunStep extends CompositeAction {
     protected from: number;
