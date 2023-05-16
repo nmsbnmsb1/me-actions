@@ -51,7 +51,6 @@ export class RunQueue extends CompositeAction {
 	protected async doStart(context: any) {
 		if (this.stopHandler === RunQueue.StopHandlerAuto && this.children.length <= 0) return;
 		//
-		this.context = context;
 		this.next();
 		//
 		await this.getRP().p;

@@ -98,9 +98,9 @@ export class Action {
 	public start(context?: any) {
 		if (!this.isIdle()) return this;
 		//
-		let ctx = this.context || context;
+		this.context = this.context || context;
 		this.status = ActionStatus.Pending;
-		this.doStart(ctx).then(
+		this.doStart(this.context).then(
 			(data?: any) => {
 				//console.log('then', this.name, this.isPending(), data);
 				if (!this.isPending()) return;
@@ -113,13 +113,13 @@ export class Action {
 				if (!isError(data)) {
 					this.data = data;
 					this.status = ActionStatus.Resolved;
-					this.doStop(ctx);
+					this.doStop(this.context);
 					this.logData();
 					this.dispatch();
 				} else {
 					this.error = data;
 					this.status = ActionStatus.Rejected;
-					this.doStop(ctx);
+					this.doStop(this.context);
 					this.logErr();
 					this.dispatch();
 				}
@@ -129,7 +129,7 @@ export class Action {
 				//
 				this.error = err;
 				this.status = ActionStatus.Rejected;
-				this.doStop(ctx);
+				this.doStop(this.context);
 				this.logErr();
 				this.dispatch();
 			}
@@ -154,7 +154,10 @@ export class Action {
 		if (this.isIdle() || this.isPending()) {
 			let isPending = this.isPending();
 			this.status = ActionStatus.Stopped;
-			if (isPending) this.doStop(this.context || context);
+			if (isPending) {
+				this.context = this.context || context;
+				this.doStop(this.context);
+			}
 			this.dispatch();
 		}
 		return this;
