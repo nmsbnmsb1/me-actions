@@ -32,7 +32,7 @@ export class Action {
 				return !this.name ? pn : `${pn}${ln}${this.name}`;
 			}
 		}
-		return this.name;
+		return this.name || '';
 	}
 	public getData() {
 		return this.data;
