@@ -1,6 +1,6 @@
 {
 	"name": "me-actions",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"main": "lib/index.js",
 	"exports": {
 		".": {
@@ -14,7 +14,7 @@
 		"build": "npm run build:cjs && npm run build:esm"
 	},
 	"devDependencies": {
-		"@types/node": "^20.1.4",
+		"@types/node": "^20.2.3",
 		"prettier": "^2.8.8",
 		"typescript": "^5.0.4"
 	}
