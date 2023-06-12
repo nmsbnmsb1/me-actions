@@ -72,7 +72,7 @@ export class Action {
 		return this.rp || (this.rp = defer());
 	}
 	protected endRP(reject: boolean = true, data?: any) {
-		if (this.rp) reject ? this.rp.reject(data) : this.rp.resolve(data);
+		if (this.rp) reject ? this.rp.reject(data || new Error('endRP')) : this.rp.resolve(data);
 	}
 	protected logData() {
 		if (this.data && this.context && this.name) {
@@ -113,13 +113,19 @@ export class Action {
 				if (!isError(data)) {
 					this.data = data;
 					this.status = ActionStatus.Resolved;
-					this.doStop(this.context);
+					{
+						this.doStop(this.context);
+						if (this.rp) this.endRP();
+					}
 					this.logData();
 					this.dispatch();
 				} else {
 					this.error = data;
 					this.status = ActionStatus.Rejected;
-					this.doStop(this.context);
+					{
+						this.doStop(this.context);
+						if (this.rp) this.endRP();
+					}
 					this.logErr();
 					this.dispatch();
 				}
@@ -129,7 +135,10 @@ export class Action {
 				//
 				this.error = err;
 				this.status = ActionStatus.Rejected;
-				this.doStop(this.context);
+				{
+					this.doStop(this.context);
+					if (this.rp) this.endRP();
+				}
 				this.logErr();
 				this.dispatch();
 			}
@@ -157,14 +166,13 @@ export class Action {
 			if (isPending) {
 				this.context = this.context || context;
 				this.doStop(this.context);
+				if (this.rp) this.endRP();
 			}
 			this.dispatch();
 		}
 		return this;
 	}
-	protected doStop(context: any) {
-		this.endRP();
-	}
+	protected doStop(context: any) {}
 }
 
 export class CompositeAction extends Action {
@@ -192,6 +200,5 @@ export class CompositeAction extends Action {
 	protected doStop(context: any) {
 		for (const a of this.children) a.stop(context);
 		this.children.length = 0;
-		this.endRP();
 	}
 }

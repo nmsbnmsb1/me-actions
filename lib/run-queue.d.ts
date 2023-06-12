@@ -18,6 +18,10 @@ export declare class RunQueue extends CompositeAction {
     private next;
     private done;
     protected doStop(context: any): void;
+    addOne(a: Action): this;
     doOne(a: Action): Promise<Action>;
     stopOne(a: string | Action): void;
+    addBatch(as: Action[]): this;
+    doBatch(as: Action[], errHandler?: number): Promise<Error>;
+    stopBatch(as: Action[]): void;
 }

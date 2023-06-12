@@ -1,13 +1,13 @@
 import { Action, CompositeAction } from './action';
 import { IFunc } from './action-func';
 import { RunQueue } from './run-queue';
-export interface IStepOptions {
+export interface IRange {
     from: number;
     to: number;
     count: number;
 }
-export type IHandlerFactory = (context: any, i: number, stepOptions: IStepOptions, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
-export type IOnStep = (context: any, stepOptions: IStepOptions, caller: RunStep) => Promise<any>;
+export type IHandlerFactory = (context: any, i: number, range: IRange, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
+export type IOnStep = (context: any, range: IRange, caller: RunStep) => Promise<any>;
 export declare class RunStep extends CompositeAction {
     protected from: number;
     protected step: number;

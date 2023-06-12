@@ -18,6 +18,5 @@ export class ActionForSleep extends Action {
 	protected doStop() {
 		if (this.timer) clearTimeout(this.timer);
 		this.timer = undefined;
-		this.endRP();
 	}
 }

@@ -104,10 +104,12 @@ export class RunQueue extends CompositeAction {
 		this.running.length = 0;
 		for (const action of this.children) action.stop(context);
 		this.children.length = 0;
-		this.endRP();
 	}
 
 	//
+	public addOne(a: Action) {
+		return this.addChild(a);
+	}
 	public async doOne(a: Action) {
 		if ((this.isIdle() || this.isPending()) && !this.toStop) {
 			super.addChild(a);
@@ -137,6 +139,30 @@ export class RunQueue extends CompositeAction {
 			this.children.splice(i, 1);
 			action.stop(this.context);
 			return;
+		}
+	}
+	public addBatch(as: Action[]) {
+		for (let a of as) {
+			this.addChild(a);
+		}
+		return this;
+	}
+	public async doBatch(as: Action[], errHandler: number = ErrHandler.Ignore) {
+		let all = [];
+		for (let a of as) {
+			all.push(this.doOne(a));
+		}
+		await Promise.all(all);
+		//
+		if (errHandler != ErrHandler.Ignore) {
+			for (let a of as) {
+				if (a.isRejected()) return a.getError();
+			}
+		}
+	}
+	public stopBatch(as: Action[]) {
+		for (let a of as) {
+			this.stopOne(a);
 		}
 	}
 }

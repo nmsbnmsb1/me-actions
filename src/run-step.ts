@@ -3,13 +3,13 @@ import { ActionForFunc, IFunc } from './action-func';
 import { RunQueue } from './run-queue';
 import { ErrHandler } from './utils';
 
-export interface IStepOptions {
+export interface IRange {
 	from: number;
 	to: number;
 	count: number;
 }
-export type IHandlerFactory = (context: any, i: number, stepOptions: IStepOptions, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
-export type IOnStep = (context: any, stepOptions: IStepOptions, caller: RunStep) => Promise<any>;
+export type IHandlerFactory = (context: any, i: number, range: IRange, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
+export type IOnStep = (context: any, range: IRange, caller: RunStep) => Promise<any>;
 
 export class RunStep extends CompositeAction {
 	protected from: number;
@@ -86,30 +86,32 @@ export class RunStep extends CompositeAction {
 		while (current <= this.to) {
 			this.toStop = false;
 			//1,3,5,10
-			const stepOptions: IStepOptions = { from: current, to: this.to, count };
+			const range: IRange = { from: current, to: this.to, count };
 			//截断
-			if (this.step > 0) stepOptions.to = Math.min(current + this.step - 1, this.to);
+			if (this.step > 0) {
+				range.to = Math.min(current + this.step - 1, this.to);
+			}
 			//截断
-			if (this.limit > 0 && this.limit - count < stepOptions.to - stepOptions.from + 1) {
-				stepOptions.to = stepOptions.from + (this.limit - count) - 1;
+			if (this.limit > 0 && this.limit - count < range.to - range.from + 1) {
+				range.to = range.from + (this.limit - count) - 1;
 			}
 
 			// before
-			if (this.onBeforeStep) await this.onBeforeStep(context, stepOptions, this);
+			if (this.onBeforeStep) await this.onBeforeStep(context, range, this);
 			if (!this.isPending()) break;
 			if (this.toStop) {
-				if (this.onAfterStep) await this.onAfterStep(context, stepOptions, this);
+				if (this.onAfterStep) await this.onAfterStep(context, range, this);
 				break;
 			}
 
 			// pending
-			stepOptions.count = count = count + (stepOptions.to - stepOptions.from + 1);
+			range.count = count = count + (range.to - range.from + 1);
 			//
 			this.queueAction = new RunQueue(0, RunQueue.StopHandlerAuto, this.errHandler);
 			(this.queueAction as any).parent = this;
 			if (this.queueName) this.queueAction.setName(this.queueName);
-			for (let i = stepOptions.from; i <= stepOptions.to; i++) {
-				let result = this.handlerFactory(context, i, stepOptions, this);
+			for (let i = range.from; i <= range.to; i++) {
+				let result = this.handlerFactory(context, i, range, this);
 				let af: Action | IFunc;
 				let a: Action;
 				//
@@ -132,12 +134,12 @@ export class RunStep extends CompositeAction {
 			this.queueAction = undefined;
 
 			// after
-			if (this.onAfterStep) await this.onAfterStep(context, stepOptions, this);
+			if (this.onAfterStep) await this.onAfterStep(context, range, this);
 			if (!this.isPending()) break;
 			if (this.toStop) break;
 			if (this.limit > 0 && count >= this.limit) break;
 			//
-			current = stepOptions.to + 1;
+			current = range.to + 1;
 			if (current > this.to) break;
 		}
 		// console.log("done");
