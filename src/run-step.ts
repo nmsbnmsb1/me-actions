@@ -70,6 +70,14 @@ export class RunStep extends CompositeAction {
 		this.toStop = true;
 		return this;
 	}
+	public extendLimit(limit: number) {
+		if (limit > this.limit) this.limit = limit;
+		return this.limit;
+	}
+	public extendTo(to: number) {
+		if (to > this.to) this.to = to;
+		return this.to;
+	}
 	//
 	public addChild(a: Action) {
 		if (this.queueAction && !this.toStop) this.queueAction.addChild(a);

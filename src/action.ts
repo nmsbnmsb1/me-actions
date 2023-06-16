@@ -72,7 +72,7 @@ export class Action {
 		return this.rp || (this.rp = defer());
 	}
 	protected endRP(reject: boolean = true, data?: any) {
-		if (this.rp) reject ? this.rp.reject(data || new Error('endRP')) : this.rp.resolve(data);
+		if (this.rp) reject ? this.rp.reject(data || new Error('end runtime promise')) : this.rp.resolve(data);
 	}
 	protected logData() {
 		if (this.data && this.context && this.name) {
@@ -115,7 +115,7 @@ export class Action {
 					this.status = ActionStatus.Resolved;
 					{
 						this.doStop(this.context);
-						if (this.rp) this.endRP();
+						if (this.rp) this.endRP(false);
 					}
 					this.logData();
 					this.dispatch();
@@ -124,7 +124,7 @@ export class Action {
 					this.status = ActionStatus.Rejected;
 					{
 						this.doStop(this.context);
-						if (this.rp) this.endRP();
+						if (this.rp) this.endRP(false);
 					}
 					this.logErr();
 					this.dispatch();
@@ -137,7 +137,7 @@ export class Action {
 				this.status = ActionStatus.Rejected;
 				{
 					this.doStop(this.context);
-					if (this.rp) this.endRP();
+					if (this.rp) this.endRP(false);
 				}
 				this.logErr();
 				this.dispatch();
@@ -151,9 +151,17 @@ export class Action {
 	}
 	public async startAsync(context?: any) {
 		if (this.isIdle()) {
-			const p = new Promise((resolve) => this.watch(resolve));
+			let d = defer();
+			this.watch(() => {
+				// if (this.isRejected() || this.isStopped()) {
+				// 	d.reject(this, this.context, this.data, this.error);
+				// } else {
+				// }
+				d.resolve(this, this.context, this.data, this.error);
+			});
 			this.start(context);
-			await p;
+			//
+			await d.p;
 		}
 		return this;
 	}
@@ -166,7 +174,7 @@ export class Action {
 			if (isPending) {
 				this.context = this.context || context;
 				this.doStop(this.context);
-				if (this.rp) this.endRP();
+				if (this.rp) this.endRP(false);
 			}
 			this.dispatch();
 		}

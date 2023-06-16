@@ -26,6 +26,8 @@ export declare class RunStep extends CompositeAction {
     setOnAfterStep(fn: IOnStep): this;
     setQueueName(name: string): this;
     setToStop(): this;
+    extendLimit(limit: number): number;
+    extendTo(to: number): number;
     addChild(a: Action): this;
     numChildren(): number;
     protected doStart(context: any): Promise<void>;
