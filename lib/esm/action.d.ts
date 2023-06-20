@@ -38,6 +38,7 @@ export declare class CompositeAction extends Action {
     constructor(errHandler?: number);
     setErrHandler(errHandler: number): this;
     addChild(a: Action): this;
+    addChildren(as: Action[]): this;
     numChildren(): number;
     protected doStop(context: any): void;
 }

@@ -201,6 +201,13 @@ export class CompositeAction extends Action {
 		(a as any).parent = this;
 		return this;
 	}
+	public addChildren(as: Action[]) {
+		for (let a of as) {
+			this.children.push(a);
+			(a as any).parent = this;
+		}
+		return this;
+	}
 	public numChildren() {
 		return this.children.length;
 	}
