@@ -4,6 +4,7 @@ import { ErrHandler } from './utils';
 export class RunQueue extends CompositeAction {
 	public static StopHandlerManual = 0;
 	public static StopHandlerAuto = 1;
+	public static StopHandlerAutoAtLeastOnce = 2;
 
 	protected stopHandler = RunQueue.StopHandlerAuto;
 	protected runCount = 5;
@@ -49,9 +50,14 @@ export class RunQueue extends CompositeAction {
 	}
 	//
 	protected async doStart(context: any) {
-		if (this.stopHandler === RunQueue.StopHandlerAuto && this.children.length <= 0) return;
+		//如果自动停止
+		if (this.stopHandler === RunQueue.StopHandlerAuto && this.children.length <= 0) {
+			return;
+		}
 		//
-		this.next();
+		if (this.children.length > 0) {
+			this.next();
+		}
 		//
 		await this.getRP().p;
 	}

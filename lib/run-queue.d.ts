@@ -2,6 +2,7 @@ import { Action, CompositeAction } from './action';
 export declare class RunQueue extends CompositeAction {
     static StopHandlerManual: number;
     static StopHandlerAuto: number;
+    static StopHandlerAutoAtLeastOnce: number;
     protected stopHandler: number;
     protected runCount: number;
     protected running: Action[];
