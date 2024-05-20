@@ -90,7 +90,7 @@ export class RunQueue extends CompositeAction {
 		}
 		//
 		if (this.children.length === 0 && this.running.length === 0) {
-			if (this.stopHandler === RunQueue.StopHandlerAuto || this.toStop) {
+			if (this.stopHandler === RunQueue.StopHandlerAuto || this.stopHandler === RunQueue.StopHandlerAutoAtLeastOnce || this.toStop) {
 				this.toStop = true;
 				this.done();
 			}

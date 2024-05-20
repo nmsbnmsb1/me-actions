@@ -14,8 +14,8 @@
 		"build": "pnpm run build:cjs && pnpm run build:esm"
 	},
 	"devDependencies": {
-		"@types/node": "^20.11.5",
-		"prettier": "^3.2.4",
-		"typescript": "^5.3.3"
+		"@types/node": "^20.12.12",
+		"prettier": "^3.2.5",
+		"typescript": "^5.4.5"
 	}
 }
