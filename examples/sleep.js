@@ -9,6 +9,6 @@ const context = { datas: {}, errs: {} };
 		a1.stop();
 		console.log('stop');
 	}, 1000);
-	await a1.startAsync(context);
+	await a1.start(context);
 	console.log('final', a1);
 })();

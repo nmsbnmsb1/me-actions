@@ -1,4 +1,4 @@
-const { RunStep, RunFunc } = require('../lib');
+const { RunStep, ActionForFunc } = require('../lib');
 
 const context = { datas: {}, errs: {} };
 
@@ -11,7 +11,7 @@ const context = { datas: {}, errs: {} };
 		2,
 		undefined,
 		(i) => {
-			return new RunFunc(() => {
+			return new ActionForFunc(() => {
 				return new Promise((resolve) => {
 					setTimeout(() => {
 						console.log(`a${i}`, i);
@@ -29,5 +29,5 @@ const context = { datas: {}, errs: {} };
 		console.log('stop');
 	}, 500);
 	//
-	console.log('final', await a1.startAsync(context));
+	console.log('final', await a1.start(context));
 })();

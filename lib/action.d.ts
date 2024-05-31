@@ -1,7 +1,7 @@
 import { IDeferer, IWatcher } from './utils';
 export declare class Action {
-    protected context: any;
     protected parent: Action;
+    protected context: any;
     protected name: string;
     protected status: number;
     protected data: any;
@@ -22,15 +22,14 @@ export declare class Action {
     isStopped(): boolean;
     watch(w: IWatcher, index?: number): this;
     protected getRP(): IDeferer;
-    protected endRP(reject?: boolean, data?: any): void;
+    protected endRP(resolve?: boolean, data?: any): void;
     protected logData(): void;
     protected logErr(): void;
     protected dispatch(): void;
-    start(context?: any): this;
+    start(context?: any): Promise<this>;
     protected doStart(context: any): Promise<any>;
-    startAsync(context?: any): Promise<this>;
-    stop(context?: any): this;
-    protected doStop(context: any): void;
+    stop(context?: any): Promise<this>;
+    protected doStop(context: any): Promise<any>;
 }
 export declare class CompositeAction extends Action {
     protected children: Action[];
@@ -40,5 +39,5 @@ export declare class CompositeAction extends Action {
     addChild(a: Action): this;
     addChildren(as: Action[]): this;
     numChildren(): number;
-    protected doStop(context: any): void;
+    protected doStop(context: any): Promise<void>;
 }

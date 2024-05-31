@@ -132,7 +132,7 @@ export class RunStep extends CompositeAction {
 				// console.log(i, options);
 				// if (this.limit > 0 && count >= this.limit) { options.to = i; break; }
 			}
-			await this.queueAction.startAsync(context);
+			await this.queueAction.start(context);
 			//
 			if (!this.isPending()) break;
 			if (this.queueAction.isRejected()) {
@@ -154,8 +154,8 @@ export class RunStep extends CompositeAction {
 		if (e && this.errHandler !== ErrHandler.Ignore) throw e;
 	}
 
-	protected doStop(context: any) {
-		if (this.queueAction) this.queueAction.stop(context);
-		super.doStop(context);
+	protected async doStop(context: any) {
+		if (this.queueAction) await this.queueAction.stop(context);
+		await super.doStop(context);
 	}
 }

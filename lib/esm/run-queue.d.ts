@@ -6,7 +6,7 @@ export declare class RunQueue extends CompositeAction {
     protected stopHandler: number;
     protected runCount: number;
     protected running: Action[];
-    protected w: (action: Action) => any;
+    protected then: any;
     protected e: Error;
     protected toStop: boolean;
     constructor(runCount?: number, stopHandler?: number, errHandler?: number);
@@ -18,11 +18,11 @@ export declare class RunQueue extends CompositeAction {
     protected doStart(context: any): Promise<void>;
     private next;
     private done;
-    protected doStop(context: any): void;
+    protected doStop(context: any): Promise<void>;
     addOne(a: Action): this;
     doOne(a: Action): Promise<Action>;
-    stopOne(a: string | Action): void;
+    stopOne(a: string | Action): Promise<void>;
     addBatch(as: Action[]): this;
     doBatch(as: Action[], errHandler?: number): Promise<Error>;
-    stopBatch(as: Action[]): void;
+    stopBatch(as: Action[]): Promise<void>;
 }

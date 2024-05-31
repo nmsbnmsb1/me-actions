@@ -24,7 +24,7 @@ export class ActionForFunc extends Action {
 		return this.iDoStart(context, this);
 	}
 
-	protected doStop(context: any) {
+	protected async doStop(context: any) {
 		if (this.iDoStop) return this.iDoStop(context, this);
 	}
 }

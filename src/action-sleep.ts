@@ -15,7 +15,7 @@ export class ActionForSleep extends Action {
 		await rp.p;
 	}
 
-	protected doStop() {
+	protected async doStop() {
 		if (this.timer) clearTimeout(this.timer);
 		this.timer = undefined;
 	}

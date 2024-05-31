@@ -9,7 +9,7 @@ export class RunQueue extends CompositeAction {
 	protected stopHandler = RunQueue.StopHandlerAuto;
 	protected runCount = 5;
 	protected running: Action[] = [];
-	protected w: (action: Action) => any;
+	protected then: any;
 	protected e: Error;
 	protected toStop = false;
 
@@ -39,9 +39,7 @@ export class RunQueue extends CompositeAction {
 	public addChild(a: Action) {
 		if ((this.isIdle() || this.isPending()) && !this.toStop) {
 			super.addChild(a);
-			if (this.isPending()) {
-				this.next();
-			}
+			if (this.isPending()) this.next();
 		}
 		return this;
 	}
@@ -51,14 +49,8 @@ export class RunQueue extends CompositeAction {
 	//
 	protected async doStart(context: any) {
 		//如果自动停止
-		if (this.stopHandler === RunQueue.StopHandlerAuto && this.children.length <= 0) {
-			return;
-		}
-		//
-		if (this.children.length > 0) {
-			this.next();
-		}
-		//
+		if (this.stopHandler === RunQueue.StopHandlerAuto && this.children.length <= 0) return;
+		if (this.children.length > 0) this.next();
 		await this.getRP().p;
 	}
 	private next() {
@@ -68,10 +60,9 @@ export class RunQueue extends CompositeAction {
 			const action = this.children.shift();
 			if (!action.isIdle()) continue;
 			this.running.push(action);
-			//
-			action.start(this.context).watch(
-				this.w ||
-					(this.w = (action: Action) => {
+			action.start(this.context).then(
+				this.then ||
+					(this.then = (action: Action) => {
 						if (!this.isPending()) return this.getRP().reject();
 						//
 						let index = this.running.indexOf(action);
@@ -84,8 +75,7 @@ export class RunQueue extends CompositeAction {
 						}
 						//
 						this.next();
-					}),
-				0
+					})
 			);
 		}
 		//
@@ -103,13 +93,14 @@ export class RunQueue extends CompositeAction {
 			this.getRP().resolve();
 		}
 	}
-	//
-	protected doStop(context: any) {
+	protected async doStop(context: any) {
 		this.toStop = true;
-		for (const action of this.running) action.stop(context);
+		let all = [];
+		for (const action of this.running) all.push(action.stop(context));
 		this.running.length = 0;
-		for (const action of this.children) action.stop(context);
+		for (const action of this.children) all.push(action.stop(context));
 		this.children.length = 0;
+		await Promise.all(all);
 	}
 
 	//
@@ -126,14 +117,14 @@ export class RunQueue extends CompositeAction {
 		}
 		return a;
 	}
-	public stopOne(a: string | Action) {
+	public async stopOne(a: string | Action) {
 		for (let i = 0; i < this.running.length; i++) {
 			const action = this.running[i];
 			if (typeof a === 'string' && a !== action.getName()) continue;
 			else if (a !== action) continue;
 			//
 			this.running.splice(i, 1);
-			action.stop(this.context);
+			await action.stop(this.context);
 			this.next();
 			return;
 		}
@@ -143,21 +134,18 @@ export class RunQueue extends CompositeAction {
 			else if (a !== action) continue;
 			//
 			this.children.splice(i, 1);
-			action.stop(this.context);
+			await action.stop(this.context);
 			return;
 		}
 	}
+	//
 	public addBatch(as: Action[]) {
-		for (let a of as) {
-			this.addChild(a);
-		}
+		for (let a of as) this.addChild(a);
 		return this;
 	}
 	public async doBatch(as: Action[], errHandler: number = ErrHandler.Ignore) {
 		let all = [];
-		for (let a of as) {
-			all.push(this.doOne(a));
-		}
+		for (let a of as) all.push(this.doOne(a));
 		await Promise.all(all);
 		//
 		if (errHandler != ErrHandler.Ignore) {
@@ -166,9 +154,9 @@ export class RunQueue extends CompositeAction {
 			}
 		}
 	}
-	public stopBatch(as: Action[]) {
-		for (let a of as) {
-			this.stopOne(a);
-		}
+	public async stopBatch(as: Action[]) {
+		let all = [];
+		for (let a of as) all.push(this.stopOne(a));
+		await Promise.all(all);
 	}
 }

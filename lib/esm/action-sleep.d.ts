@@ -4,5 +4,5 @@ export declare class ActionForSleep extends Action {
     private timer;
     constructor(timeout: number);
     protected doStart(): Promise<void>;
-    protected doStop(): void;
+    protected doStop(): Promise<void>;
 }

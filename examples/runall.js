@@ -1,4 +1,4 @@
-const { RunAll, RunFunc } = require('../lib');
+const { RunAll, ActionForFunc } = require('../lib');
 
 const context = { datas: {}, errs: {} };
 
@@ -7,7 +7,7 @@ const context = { datas: {}, errs: {} };
 	const a1 = new RunAll(false);
 	a1.setName('run-all');
 	a1.addChild(
-		new RunFunc(() => {
+		new ActionForFunc(() => {
 			return new Promise((resolve) => {
 				setTimeout(() => {
 					console.log('a1', 1);
@@ -17,7 +17,7 @@ const context = { datas: {}, errs: {} };
 		}).setName('1')
 	);
 	a1.addChild(
-		new RunFunc(async () => {
+		new ActionForFunc(async () => {
 			return new Promise((resolve) => {
 				setTimeout(() => {
 					console.log('a2', 2);
@@ -27,7 +27,7 @@ const context = { datas: {}, errs: {} };
 		}).setName('2')
 	);
 	a1.addChild(
-		new RunFunc(async () => {
+		new ActionForFunc(async () => {
 			return new Promise((resolve) => {
 				setTimeout(() => {
 					console.log('a3', 3);
@@ -42,5 +42,5 @@ const context = { datas: {}, errs: {} };
 		console.log('stop');
 	}, 500);
 
-	console.log('final', await a1.startAsync(context));
+	console.log('final', await a1.start(context));
 })();

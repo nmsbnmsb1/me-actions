@@ -31,5 +31,5 @@ export declare class RunStep extends CompositeAction {
     addChild(a: Action): this;
     numChildren(): number;
     protected doStart(context: any): Promise<void>;
-    protected doStop(context: any): void;
+    protected doStop(context: any): Promise<void>;
 }

@@ -1,8 +1,8 @@
 import { ActionStatus, defer, ErrHandler, IDeferer, isError, IWatcher } from './utils';
 
 export class Action {
-	protected context: any;
 	protected parent: Action;
+	protected context: any;
 	protected name: string;
 	protected status: number = ActionStatus.Idle;
 	protected data: any;
@@ -56,7 +56,7 @@ export class Action {
 	public isStopped() {
 		return this.status === ActionStatus.Stopped;
 	}
-	//
+	//watcher
 	public watch(w: IWatcher, index = -1) {
 		let ws = this.watchers || (this.watchers = []);
 		if (index < 0) ws.push(w);
@@ -66,13 +66,14 @@ export class Action {
 		}
 		return this;
 	}
-
 	//
 	protected getRP() {
 		return this.rp || (this.rp = defer());
 	}
-	protected endRP(reject: boolean = true, data?: any) {
-		if (this.rp) reject ? this.rp.reject(data || new Error('end runtime promise')) : this.rp.resolve(data);
+	protected endRP(resolve: boolean = true, data?: any) {
+		if (this.rp) {
+			resolve ? this.rp.resolve(data) : this.rp.reject(data || new Error('end runtime promise'));
+		}
 	}
 	protected logData() {
 		if (this.data && this.context && this.name) {
@@ -95,92 +96,57 @@ export class Action {
 	}
 
 	//执行
-	public start(context?: any) {
-		if (!this.isIdle()) return this;
-		//
-		this.context = this.context || context;
-		this.status = ActionStatus.Pending;
-		this.doStart(this.context).then(
-			(data?: any) => {
-				//console.log('then', this.name, this.isPending(), data);
-				if (!this.isPending()) return;
+	public async start(context?: any) {
+		if (this.isIdle()) {
+			let data: any;
+			try {
+				this.context = this.context || context;
+				this.status = ActionStatus.Pending;
+				data = await this.doStart(this.context);
 				//如果返回了另外一个Action
 				if (data instanceof Action) {
 					let a = data as Action;
 					data = a.isResolved() ? a.getData() : a.getError() || new Error('unknown');
 				}
-				//
+			} catch (err) {
+				data = err;
+			}
+			//console.log('then', this.name, this.isPending(), data);
+			if (this.isPending()) {
 				if (!isError(data)) {
 					this.data = data;
 					this.status = ActionStatus.Resolved;
-					{
-						this.doStop(this.context);
-						if (this.rp) this.endRP(false);
-					}
-					this.logData();
-					this.dispatch();
 				} else {
 					this.error = data;
 					this.status = ActionStatus.Rejected;
-					{
-						this.doStop(this.context);
-						if (this.rp) this.endRP(false);
-					}
-					this.logErr();
-					this.dispatch();
 				}
-			},
-			(err: Error) => {
-				if (!this.isPending()) return;
-				//
-				this.error = err;
-				this.status = ActionStatus.Rejected;
-				{
-					this.doStop(this.context);
-					if (this.rp) this.endRP(false);
-				}
-				this.logErr();
+				await this.doStop(this.context);
+				if (this.rp) this.endRP(true);
+				this.logData();
 				this.dispatch();
 			}
-		);
-		//
-		return this;
-	}
-	protected async doStart(context: any): Promise<any> {
-		return Promise.resolve();
-	}
-	public async startAsync(context?: any) {
-		if (this.isIdle()) {
-			let d = defer();
-			this.watch(() => {
-				// if (this.isRejected() || this.isStopped()) {
-				// 	d.reject(this, this.context, this.data, this.error);
-				// } else {
-				// }
-				d.resolve(this, this.context, this.data, this.error);
-			});
-			this.start(context);
-			//
-			await d.p;
 		}
 		return this;
 	}
-
-	//
-	public stop(context?: any) {
+	protected async doStart(context: any) {
+		return null as any;
+	}
+	public async stop(context?: any) {
 		if (this.isIdle() || this.isPending()) {
 			let isPending = this.isPending();
 			this.status = ActionStatus.Stopped;
 			if (isPending) {
 				this.context = this.context || context;
-				this.doStop(this.context);
-				if (this.rp) this.endRP(false);
+				await this.doStop(this.context);
+				if (this.rp) this.endRP(true);
 			}
 			this.dispatch();
 		}
 		return this;
 	}
-	protected doStop(context: any) {}
+	protected async doStop(context: any) {
+		return null as any;
+	}
 }
 
 export class CompositeAction extends Action {
@@ -212,8 +178,12 @@ export class CompositeAction extends Action {
 		return this.children.length;
 	}
 
-	protected doStop(context: any) {
-		for (const a of this.children) a.stop(context);
+	protected async doStop(context: any) {
+		if (this.children.length > 0) {
+			let all = [];
+			for (const a of this.children) all.push(a.stop(context));
+			await Promise.all(all);
+		}
 		this.children.length = 0;
 	}
 }
