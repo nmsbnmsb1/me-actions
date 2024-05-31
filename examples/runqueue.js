@@ -37,10 +37,10 @@ const context = { datas: {}, errs: {} };
 		}).setName('3')
 	);
 
-	setTimeout(() => {
-		a1.stop();
-		console.log('stop');
-	}, 500);
+	// setTimeout(() => {
+	// 	a1.stop();
+	// 	console.log('stop');
+	// }, 500);
 	//
 	console.log('final', await a1.start(context));
 })();

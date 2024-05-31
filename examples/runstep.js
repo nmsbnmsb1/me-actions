@@ -10,7 +10,7 @@ const context = { datas: {}, errs: {} };
 		0,
 		2,
 		undefined,
-		(i) => {
+		(ctx, i) => {
 			return new ActionForFunc(() => {
 				return new Promise((resolve) => {
 					setTimeout(() => {
@@ -24,10 +24,10 @@ const context = { datas: {}, errs: {} };
 	);
 	a1.setName('run-step');
 
-	setTimeout(() => {
-		a1.stop();
-		console.log('stop');
-	}, 500);
+	// setTimeout(() => {
+	// 	a1.stop();
+	// 	console.log('stop');
+	// }, 500);
 	//
 	console.log('final', await a1.start(context));
 })();

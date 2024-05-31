@@ -9,7 +9,7 @@ export class RunQueue extends CompositeAction {
 	protected stopHandler = RunQueue.StopHandlerAuto;
 	protected runCount = 5;
 	protected running: Action[] = [];
-	protected then: any;
+	protected w: any;
 	protected e: Error;
 	protected toStop = false;
 
@@ -61,8 +61,8 @@ export class RunQueue extends CompositeAction {
 			if (!action.isIdle()) continue;
 			this.running.push(action);
 			action.start(this.context).then(
-				this.then ||
-					(this.then = (action: Action) => {
+				this.w ||
+					(this.w = (action: Action) => {
 						if (!this.isPending()) return this.getRP().reject();
 						//
 						let index = this.running.indexOf(action);

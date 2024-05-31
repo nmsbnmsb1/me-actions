@@ -11,12 +11,12 @@ export class RunAll extends CompositeAction {
 		//
 		let total = this.children.length;
 		let count = 0;
-		let then: any;
+		let w: any;
 		let e: Error;
 		for (const action of this.children) {
 			action.start(context).then(
-				then ||
-					(then = (action: Action) => {
+				w ||
+					(w = (action: Action) => {
 						if (!this.isPending()) return this.getRP().reject();
 						//
 						count++;

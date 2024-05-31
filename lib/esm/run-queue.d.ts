@@ -6,7 +6,7 @@ export declare class RunQueue extends CompositeAction {
     protected stopHandler: number;
     protected runCount: number;
     protected running: Action[];
-    protected then: any;
+    protected w: any;
     protected e: Error;
     protected toStop: boolean;
     constructor(runCount?: number, stopHandler?: number, errHandler?: number);
