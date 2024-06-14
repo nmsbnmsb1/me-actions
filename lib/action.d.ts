@@ -12,7 +12,7 @@ export declare class Action {
     getContext(): any;
     setName(name: string): this;
     getName(): string;
-    getFullName(ln?: string): string;
+    getFullName(ln?: string, showAll?: boolean): string;
     getData(): any;
     getError(): Error;
     isIdle(): boolean;

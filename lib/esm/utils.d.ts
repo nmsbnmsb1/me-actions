@@ -10,7 +10,7 @@ export interface IContext {
 export declare const isError: (e: any) => boolean;
 export type IWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
 export interface IDeferer {
-    p?: Promise<Action>;
+    p?: Promise<any>;
     resolve?: any;
     reject?: any;
 }

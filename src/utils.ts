@@ -12,7 +12,7 @@ export const isError = (e: any) => Object.prototype.toString.call(e) === '[objec
 export type IWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
 
 export interface IDeferer {
-	p?: Promise<Action>;
+	p?: Promise<any>;
 	resolve?: any;
 	reject?: any;
 }

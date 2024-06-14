@@ -25,14 +25,15 @@ export class Action {
 	public getName(): string {
 		return this.name;
 	}
-	public getFullName(ln: string = '/'): string {
+	public getFullName(ln: string = '/', showAll: boolean = false): string {
+		let name = this.name || (showAll ? '..' : '');
 		if (this.parent) {
-			let pn = this.parent.getFullName(ln);
+			let pn = this.parent.getFullName(ln, showAll);
 			if (pn) {
-				return !this.name ? pn : `${pn}${ln}${this.name}`;
+				return !name ? pn : `${pn}${ln}${name}`;
 			}
 		}
-		return this.name || '';
+		return name;
 	}
 	public getData() {
 		return this.data;
@@ -116,13 +117,14 @@ export class Action {
 				if (!isError(data)) {
 					this.data = data;
 					this.status = ActionStatus.Resolved;
+					this.logData();
 				} else {
 					this.error = data;
 					this.status = ActionStatus.Rejected;
+					this.logErr();
 				}
 				await this.doStop(this.context);
 				if (this.rp) this.endRP(true);
-				this.logData();
 				this.dispatch();
 			}
 		}
