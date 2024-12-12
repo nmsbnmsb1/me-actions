@@ -1,6 +1,6 @@
 import { Action } from './action';
 
-export interface IContext {
+export interface ActionContext {
 	logger?: (level: string, msg: any, action?: Action) => void;
 	datas?: { [name: string]: any };
 	errs?: Error[];
@@ -9,15 +9,15 @@ export interface IContext {
 
 export const isError = (e: any) => Object.prototype.toString.call(e) === '[object Error]' || e instanceof Error;
 
-export type IWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
+export type ActionWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
 
-export interface IDeferer {
+export interface Deferer {
 	p?: Promise<any>;
 	resolve?: any;
 	reject?: any;
 }
-export const defer = (): IDeferer => {
-	const d: IDeferer = {} as any;
+export const defer = (): Deferer => {
+	const d: Deferer = {} as any;
 	d.p = new Promise((resolve, reject) => {
 		d.resolve = resolve;
 		d.reject = reject;
@@ -32,6 +32,7 @@ export const ActionStatus = {
 	Rejected: 3,
 	Stopped: 4,
 };
+
 export const ErrHandler = {
 	Ignore: 0,
 	RejectImmediately: 1,

@@ -1,5 +1,5 @@
 import { Action } from './action';
-export interface IContext {
+export interface ActionContext {
     logger?: (level: string, msg: any, action?: Action) => void;
     datas?: {
         [name: string]: any;
@@ -8,13 +8,13 @@ export interface IContext {
     [name: string]: any;
 }
 export declare const isError: (e: any) => boolean;
-export type IWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
-export interface IDeferer {
+export type ActionWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
+export interface Deferer {
     p?: Promise<any>;
     resolve?: any;
     reject?: any;
 }
-export declare const defer: () => IDeferer;
+export declare const defer: () => Deferer;
 export declare const ActionStatus: {
     Idle: number;
     Pending: number;

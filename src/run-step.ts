@@ -1,24 +1,20 @@
 import { Action, CompositeAction } from './action';
-import { ActionForFunc, IFunc } from './action-func';
+import { ActionForFunc, Func } from './action-func';
 import { RunQueue } from './run-queue';
 import { ErrHandler } from './utils';
 
-export interface IRange {
-	from: number;
-	to: number;
-	count: number;
-}
-export type IHandlerFactory = (context: any, i: number, range: IRange, caller: RunStep) => Action | IFunc | Promise<Action | IFunc>;
-export type IOnStep = (context: any, range: IRange, caller: RunStep) => Promise<any>;
+export interface StepRange { from: number; to: number; count: number; }
+export type StepHandlerFactory = (context: any, i: number, range: StepRange, caller: RunStep) => Action | Func | Promise<Action | Func>;
+export type OnStep = (context: any, range: StepRange, caller: RunStep) => Promise<any>;
 
 export class RunStep extends CompositeAction {
 	protected from: number;
 	protected step: number;
 	protected limit: number;
 	protected to: number;
-	protected onBeforeStep: IOnStep;
-	protected handlerFactory: IHandlerFactory;
-	protected onAfterStep: IOnStep;
+	protected onBeforeStep: OnStep;
+	protected handlerFactory: StepHandlerFactory;
+	protected onAfterStep: OnStep;
 	//
 	protected queueAction!: RunQueue;
 	protected queueName: string;
@@ -29,9 +25,9 @@ export class RunStep extends CompositeAction {
 		step: number = 0,
 		limit: number = 0,
 		to: number = 0,
-		onBeforeStep?: IOnStep,
-		handlerFactory?: IHandlerFactory,
-		onAfterStep?: IOnStep,
+		onBeforeStep?: OnStep,
+		handlerFactory?: StepHandlerFactory,
+		onAfterStep?: OnStep,
 		errHandler: number = ErrHandler.RejectAllDone
 	) {
 		super(errHandler);
@@ -50,15 +46,15 @@ export class RunStep extends CompositeAction {
 		this.to = to;
 		return this;
 	}
-	public setOnBeforeStep(fn: IOnStep) {
+	public setOnBeforeStep(fn: OnStep) {
 		this.onBeforeStep = fn;
 		return this;
 	}
-	public setHandlerFactory(fn: IHandlerFactory) {
+	public setHandlerFactory(fn: StepHandlerFactory) {
 		this.handlerFactory = fn;
 		return this;
 	}
-	public setOnAfterStep(fn: IOnStep) {
+	public setOnAfterStep(fn: OnStep) {
 		this.onAfterStep = fn;
 		return this;
 	}
@@ -94,7 +90,7 @@ export class RunStep extends CompositeAction {
 		while (current <= this.to) {
 			this.toStop = false;
 			//1,3,5,10
-			const range: IRange = { from: current, to: this.to, count };
+			const range: StepRange = { from: current, to: this.to, count };
 			//截断
 			if (this.step > 0) {
 				range.to = Math.min(current + this.step - 1, this.to);
@@ -120,7 +116,7 @@ export class RunStep extends CompositeAction {
 			if (this.queueName) this.queueAction.setName(this.queueName);
 			for (let i = range.from; i <= range.to; i++) {
 				let result = this.handlerFactory(context, i, range, this);
-				let af: Action | IFunc;
+				let af: Action | Func;
 				let a: Action;
 				//
 				if (result instanceof Promise) af = await result;

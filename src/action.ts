@@ -1,4 +1,4 @@
-import { ActionStatus, defer, ErrHandler, IDeferer, isError, IWatcher } from './utils';
+import { ActionStatus, ActionWatcher, defer, Deferer, isError, ErrHandler } from './utils';
 
 export class Action {
 	protected parent: Action;
@@ -7,9 +7,9 @@ export class Action {
 	protected status: number = ActionStatus.Idle;
 	protected data: any;
 	protected error: Error;
-	protected watchers: IWatcher[];
+	protected watchers: ActionWatcher[];
 	//utils
-	protected rp: IDeferer;
+	protected rp: Deferer;
 
 	public setContext(context: any) {
 		this.context = context;
@@ -42,6 +42,9 @@ export class Action {
 		return this.error;
 	}
 	//状态
+	public getStatus() {
+		return this.status;
+	}
 	public isIdle() {
 		return this.status === ActionStatus.Idle;
 	}
@@ -58,7 +61,7 @@ export class Action {
 		return this.status === ActionStatus.Stopped;
 	}
 	//watcher
-	public watch(w: IWatcher, index = -1) {
+	public watch(w: ActionWatcher, index = -1) {
 		let ws = this.watchers || (this.watchers = []);
 		if (index < 0) ws.push(w);
 		else if (!ws[index]) ws[index] = w;

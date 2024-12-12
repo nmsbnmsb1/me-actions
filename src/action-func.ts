@@ -1,30 +1,30 @@
 import { Action } from './action';
 
-export type IFunc = (context: any, caller?: ActionForFunc) => Promise<any>;
+export type Func = (context: any, caller?: ActionForFunc) => Promise<any>;
 
 export class ActionForFunc extends Action {
-	private iDoStart: IFunc;
-	private iDoStop?: IFunc;
+	private innerDoStart: Func;
+	private innerDoStop?: Func;
 
-	constructor(doStart?: IFunc, doStop?: IFunc) {
+	constructor(doStart?: Func, doStop?: Func) {
 		super();
-		this.iDoStart = doStart;
-		this.iDoStop = doStop;
+		this.innerDoStart = doStart;
+		this.innerDoStop = doStop;
 	}
-	public setDoStart(f: IFunc) {
-		this.iDoStart = f;
+	public setDoStart(f: Func) {
+		this.innerDoStart = f;
 		return this;
 	}
-	public setDoStop(f: IFunc) {
-		this.iDoStop = f;
+	public setDoStop(f: Func) {
+		this.innerDoStop = f;
 		return this;
 	}
 
 	protected async doStart(context: any) {
-		return this.iDoStart(context, this);
+		return this.innerDoStart(context, this);
 	}
 
 	protected async doStop(context: any) {
-		if (this.iDoStop) return this.iDoStop(context, this);
+		if (this.innerDoStop) return this.innerDoStop(context, this);
 	}
 }

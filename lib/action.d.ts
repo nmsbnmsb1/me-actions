@@ -1,4 +1,4 @@
-import { IDeferer, IWatcher } from './utils';
+import { ActionWatcher, Deferer } from './utils';
 export declare class Action {
     protected parent: Action;
     protected context: any;
@@ -6,8 +6,8 @@ export declare class Action {
     protected status: number;
     protected data: any;
     protected error: Error;
-    protected watchers: IWatcher[];
-    protected rp: IDeferer;
+    protected watchers: ActionWatcher[];
+    protected rp: Deferer;
     setContext(context: any): this;
     getContext(): any;
     setName(name: string): this;
@@ -15,13 +15,14 @@ export declare class Action {
     getFullName(ln?: string, showAll?: boolean): string;
     getData(): any;
     getError(): Error;
+    getStatus(): number;
     isIdle(): boolean;
     isPending(): boolean;
     isResolved(): boolean;
     isRejected(): boolean;
     isStopped(): boolean;
-    watch(w: IWatcher, index?: number): this;
-    protected getRP(): IDeferer;
+    watch(w: ActionWatcher, index?: number): this;
+    protected getRP(): Deferer;
     protected endRP(resolve?: boolean, data?: any): void;
     protected logData(): void;
     protected logErr(): void;
