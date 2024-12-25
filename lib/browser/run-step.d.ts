@@ -1,5 +1,5 @@
 import { Action, CompositeAction } from './action';
-import { Func } from './action-func';
+import { type Func } from './action-func';
 import { RunQueue } from './run-queue';
 export interface StepRange {
     from: number;

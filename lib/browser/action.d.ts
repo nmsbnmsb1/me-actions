@@ -1,4 +1,4 @@
-import { ActionWatcher, Deferer } from './utils';
+import { type ActionWatcher, type Deferer } from './utils';
 export declare class Action {
     protected parent: Action;
     protected context: any;

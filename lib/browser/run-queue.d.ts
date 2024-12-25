@@ -1,4 +1,4 @@
-import { Action, CompositeAction } from './action';
+import { type Action, CompositeAction } from './action';
 export declare class RunQueue extends CompositeAction {
     static StopHandlerManual: number;
     static StopHandlerAuto: number;
