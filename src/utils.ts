@@ -1,4 +1,4 @@
-import { Action } from './action';
+import type { Action } from './action';
 
 export interface ActionContext {
 	logger?: (level: string, msg: any, action?: Action) => void;

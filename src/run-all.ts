@@ -1,11 +1,7 @@
-import { Action, CompositeAction } from './action';
+import { type Action, CompositeAction } from './action';
 import { ErrHandler } from './utils';
 
 export class RunAll extends CompositeAction {
-	constructor(errHandler: number) {
-		super(errHandler);
-	}
-
 	protected async doStart(context: any) {
 		if (this.children.length <= 0) return;
 		//

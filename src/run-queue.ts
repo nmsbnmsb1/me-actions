@@ -1,4 +1,4 @@
-import { Action, CompositeAction } from './action';
+import { type Action, CompositeAction } from './action';
 import { ErrHandler } from './utils';
 
 export class RunQueue extends CompositeAction {
@@ -13,7 +13,11 @@ export class RunQueue extends CompositeAction {
 	protected e: Error;
 	protected toStop = false;
 
-	constructor(runCount: number = 5, stopHandler: number = RunQueue.StopHandlerAuto, errHandler: number = ErrHandler.RejectAllDone) {
+	constructor(
+		runCount = 5,
+		stopHandler: number = RunQueue.StopHandlerAuto,
+		errHandler: number = ErrHandler.RejectAllDone
+	) {
 		super(errHandler);
 		this.runCount = runCount;
 		this.stopHandler = stopHandler;
@@ -80,7 +84,11 @@ export class RunQueue extends CompositeAction {
 		}
 		//
 		if (this.children.length === 0 && this.running.length === 0) {
-			if (this.stopHandler === RunQueue.StopHandlerAuto || this.stopHandler === RunQueue.StopHandlerAutoAtLeastOnce || this.toStop) {
+			if (
+				this.stopHandler === RunQueue.StopHandlerAuto ||
+				this.stopHandler === RunQueue.StopHandlerAutoAtLeastOnce ||
+				this.toStop
+			) {
 				this.toStop = true;
 				this.done();
 			}
@@ -121,7 +129,7 @@ export class RunQueue extends CompositeAction {
 		for (let i = 0; i < this.running.length; i++) {
 			const action = this.running[i];
 			if (typeof a === 'string' && a !== action.getName()) continue;
-			else if (a !== action) continue;
+			if (a !== action) continue;
 			//
 			this.running.splice(i, 1);
 			await action.stop(this.context);
@@ -131,7 +139,7 @@ export class RunQueue extends CompositeAction {
 		for (let i = 0; i < this.children.length; i++) {
 			const action = this.running[i];
 			if (typeof a === 'string' && a !== action.getName()) continue;
-			else if (a !== action) continue;
+			if (a !== action) continue;
 			//
 			this.children.splice(i, 1);
 			await action.stop(this.context);
@@ -148,7 +156,7 @@ export class RunQueue extends CompositeAction {
 		for (let a of as) all.push(this.doOne(a));
 		await Promise.all(all);
 		//
-		if (errHandler != ErrHandler.Ignore) {
+		if (errHandler !== ErrHandler.Ignore) {
 			for (let a of as) {
 				if (a.isRejected()) return a.getError();
 			}

@@ -1,4 +1,4 @@
-import { Action } from './action';
+import { Action } from "./action";
 
 export class ActionForSleep extends Action {
 	private timeout: number;

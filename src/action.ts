@@ -1,4 +1,4 @@
-import { ActionStatus, ActionWatcher, defer, Deferer, isError, ErrHandler } from './utils';
+import { ActionStatus, type ActionWatcher, type Deferer, defer, isError, ErrHandler } from './utils';
 
 export class Action {
 	protected parent: Action;
@@ -25,7 +25,7 @@ export class Action {
 	public getName(): string {
 		return this.name;
 	}
-	public getFullName(ln: string = '/', showAll: boolean = false): string {
+	public getFullName(ln = '/', showAll = false): string {
 		let name = this.name || (showAll ? '..' : '');
 		if (this.parent) {
 			let pn = this.parent.getFullName(ln, showAll);
@@ -74,7 +74,7 @@ export class Action {
 	protected getRP() {
 		return this.rp || (this.rp = defer());
 	}
-	protected endRP(resolve: boolean = true, data?: any) {
+	protected endRP(resolve = true, data?: any) {
 		if (this.rp) {
 			resolve ? this.rp.resolve(data) : this.rp.reject(data || new Error('end runtime promise'));
 		}

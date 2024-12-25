@@ -1,10 +1,19 @@
 import { Action, CompositeAction } from './action';
-import { ActionForFunc, Func } from './action-func';
+import { ActionForFunc, type Func } from './action-func';
 import { RunQueue } from './run-queue';
 import { ErrHandler } from './utils';
 
-export interface StepRange { from: number; to: number; count: number; }
-export type StepHandlerFactory = (context: any, i: number, range: StepRange, caller: RunStep) => Action | Func | Promise<Action | Func>;
+export interface StepRange {
+	from: number;
+	to: number;
+	count: number;
+}
+export type StepHandlerFactory = (
+	context: any,
+	i: number,
+	range: StepRange,
+	caller: RunStep
+) => Action | Func | Promise<Action | Func>;
 export type OnStep = (context: any, range: StepRange, caller: RunStep) => Promise<any>;
 
 export class RunStep extends CompositeAction {
@@ -18,13 +27,13 @@ export class RunStep extends CompositeAction {
 	//
 	protected queueAction!: RunQueue;
 	protected queueName: string;
-	protected toStop: boolean = false;
+	protected toStop = false;
 
 	constructor(
-		from: number = 0,
-		step: number = 0,
-		limit: number = 0,
-		to: number = 0,
+		from = 0,
+		step = 0,
+		limit = 0,
+		to = 0,
 		onBeforeStep?: OnStep,
 		handlerFactory?: StepHandlerFactory,
 		onAfterStep?: OnStep,
@@ -39,7 +48,7 @@ export class RunStep extends CompositeAction {
 		this.handlerFactory = handlerFactory;
 		this.onAfterStep = onAfterStep;
 	}
-	public setValues(from: number = 0, step: number = 0, limit: number = 0, to: number = 0) {
+	public setValues(from = 0, step = 0, limit = 0, to = 0) {
 		this.from = from;
 		this.step = step;
 		this.limit = limit;
