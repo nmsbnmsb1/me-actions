@@ -1,4 +1,4 @@
-import { ActionStatus, type ActionWatcher, type Deferer, defer, isError, ErrHandler } from './utils';
+import { ActionStatus, type ActionWatcher, type Deferer, ErrHandler, defer, isError } from './utils';
 
 export class Action {
 	protected parent: Action;
