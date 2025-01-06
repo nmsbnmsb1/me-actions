@@ -1,6 +1,6 @@
 {
 	"name": "me-actions",
-	"version": "2.0.3",
+	"version": "2.0.5",
 	"//type": "module",
 	"main": "lib/index.js",
 	"module": "lib/browser/index.js",
@@ -21,8 +21,8 @@
 		"@rollup/plugin-commonjs": "^28.0.2",
 		"@rollup/plugin-node-resolve": "^16.0.0",
 		"@rollup/plugin-replace": "^6.0.2",
-		"@types/node": "^22.10.2",
-		"rollup": "^4.29.1",
+		"@types/node": "^22.10.5",
+		"rollup": "^4.30.0",
 		"rollup-plugin-typescript2": "^0.36.0",
 		"typescript": "^5.7.2"
 	}
