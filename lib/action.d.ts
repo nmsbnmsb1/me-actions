@@ -26,7 +26,7 @@ export declare class Action {
     protected endRP(resolve?: boolean, data?: any): void;
     protected logData(): void;
     protected logErr(): void;
-    protected dispatch(): void;
+    protected dispatch(): Promise<void>;
     start(context?: any): Promise<this>;
     protected doStart(context: any): Promise<any>;
     stop(context?: any): Promise<this>;

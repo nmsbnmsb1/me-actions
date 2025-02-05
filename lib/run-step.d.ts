@@ -5,9 +5,10 @@ export interface StepRange {
     from: number;
     to: number;
     count: number;
+    limit: number;
 }
-export type StepHandlerFactory = (context: any, i: number, range: StepRange, caller: RunStep) => Action | Func | Promise<Action | Func>;
-export type OnStep = (context: any, range: StepRange, caller: RunStep) => Promise<any>;
+export type StepHandlerFactory = (caller: RunStep, context: any, i: number, range: StepRange) => Action | Func | Promise<Action | Func>;
+export type OnStep = (caller: RunStep, context: any, range: StepRange) => Promise<any>;
 export declare class RunStep extends CompositeAction {
     protected from: number;
     protected step: number;

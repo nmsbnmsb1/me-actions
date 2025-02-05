@@ -87,14 +87,20 @@ export class Action {
 	protected logErr() {
 		if (this.context && (!this.context.errs || this.context.errs.indexOf(this.error) < 0)) {
 			(this.context.errs || (this.context.errs = [])).push(this.error);
-			if (this.context.logger) this.context.logger('error', this.error, this);
+			if (this.context.logger) {
+				this.context.logger('error', this.error, this, this.context);
+			}
 		}
 	}
-	protected dispatch() {
+	protected async dispatch() {
 		if (!this.watchers) return;
-		//
 		for (let w of this.watchers) {
-			if (w) w(this, this.context, this.data, this.error);
+			if (w) {
+				let result = w(this, this.context, this.data, this.error);
+				if (result?.then) {
+					await result;
+				}
+			}
 		}
 		this.watchers.length = 0;
 	}
@@ -113,7 +119,7 @@ export class Action {
 					data = a.isResolved() ? a.getData() : a.getError() || new Error('unknown');
 				}
 			} catch (err) {
-				data = err;
+				data = isError(err) ? err : new Error(err);
 			}
 			//console.log('then', this.name, this.isPending(), data);
 			if (this.isPending()) {
@@ -128,13 +134,13 @@ export class Action {
 				}
 				await this.doStop(this.context);
 				if (this.rp) this.endRP(true);
-				this.dispatch();
+				await this.dispatch();
 			}
 		}
 		return this;
 	}
-	protected async doStart(context: any) {
-		return null as any;
+	protected async doStart(context: any): Promise<any> {
+		return;
 	}
 	public async stop(context?: any) {
 		if (this.isIdle() || this.isPending()) {
@@ -145,12 +151,12 @@ export class Action {
 				await this.doStop(this.context);
 				if (this.rp) this.endRP(true);
 			}
-			this.dispatch();
+			await this.dispatch();
 		}
 		return this;
 	}
-	protected async doStop(context: any) {
-		return null as any;
+	protected async doStop(context: any): Promise<any> {
+		return;
 	}
 }
 

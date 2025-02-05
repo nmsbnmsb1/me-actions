@@ -1,6 +1,6 @@
 import type { Action } from './action';
 export interface ActionContext {
-    logger?: (level: string, msg: any, action?: Action) => void;
+    logger?: (level: string, msg: any, caller?: Action, context?: any) => void;
     datas?: {
         [name: string]: any;
     };
@@ -8,7 +8,7 @@ export interface ActionContext {
     [name: string]: any;
 }
 export declare const isError: (e: any) => boolean;
-export type ActionWatcher = (action?: Action, context?: any, data?: any, err?: Error) => any;
+export type ActionWatcher = (caller?: Action, context?: any, data?: any, err?: Error) => any;
 export interface Deferer {
     p?: Promise<any>;
     resolve?: any;

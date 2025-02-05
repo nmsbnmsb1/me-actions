@@ -10,15 +10,13 @@ const context = { datas: {}, errs: {} };
 		0,
 		2,
 		undefined,
-		(ctx, i) => {
-			return new ActionForFunc(() => {
-				return new Promise((resolve) => {
-					setTimeout(() => {
-						console.log(`a${i}`, i);
-						resolve(i);
-					}, 1000);
-				});
-			}).setName(`${i}`);
+		(_,__, i) => {
+			return new ActionForFunc(() => new Promise((resolve) => {
+				setTimeout(() => {
+					console.log(`a${i}`, i);
+					resolve(i);
+				}, 1000);
+			})).setName(`${i}`);
 		},
 		undefined
 	);

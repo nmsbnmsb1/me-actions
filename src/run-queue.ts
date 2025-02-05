@@ -57,17 +57,18 @@ export class RunQueue extends CompositeAction {
 		if (this.children.length > 0) this.next();
 		await this.getRP().p;
 	}
+
 	private next() {
-		if (!this.isPending()) return this.getRP().reject();
+		if (!this.isPending()) return this.getRP().reject(new Error("It's not pending"));
 		//
 		while (this.children.length > 0 && (this.runCount <= 0 || this.running.length < this.runCount)) {
-			const action = this.children.shift();
+			let action = this.children.shift();
 			if (!action.isIdle()) continue;
 			this.running.push(action);
 			action.start(this.context).then(
 				this.w ||
 					(this.w = (action: Action) => {
-						if (!this.isPending()) return this.getRP().reject();
+						if (!this.isPending()) return this.getRP().reject(new Error("It's not pending"));
 						//
 						let index = this.running.indexOf(action);
 						if (index >= 0) {

@@ -1,5 +1,5 @@
 import { Action } from './action';
-export type Func = (context: any, caller?: ActionForFunc) => Promise<any>;
+export type Func = (caller?: ActionForFunc, context?: any) => Promise<any>;
 export declare class ActionForFunc extends Action {
     private innerDoStart;
     private innerDoStop?;

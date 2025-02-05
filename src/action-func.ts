@@ -1,6 +1,6 @@
 import { Action } from './action';
 
-export type Func = (context: any, caller?: ActionForFunc) => Promise<any>;
+export type Func = (caller?: ActionForFunc, context?: any) => Promise<any>;
 
 export class ActionForFunc extends Action {
 	private innerDoStart: Func;
@@ -21,10 +21,10 @@ export class ActionForFunc extends Action {
 	}
 
 	protected async doStart(context: any) {
-		return this.innerDoStart(context, this);
+		return this.innerDoStart(this, context);
 	}
 
 	protected async doStop(context: any) {
-		if (this.innerDoStop) return this.innerDoStop(context, this);
+		if (this.innerDoStop) return this.innerDoStop(this, context);
 	}
 }

@@ -7,14 +7,15 @@ export interface StepRange {
 	from: number;
 	to: number;
 	count: number;
+	limit: number;
 }
 export type StepHandlerFactory = (
+	caller: RunStep,
 	context: any,
 	i: number,
-	range: StepRange,
-	caller: RunStep
+	range: StepRange
 ) => Action | Func | Promise<Action | Func>;
-export type OnStep = (context: any, range: StepRange, caller: RunStep) => Promise<any>;
+export type OnStep = (caller: RunStep, context: any, range: StepRange) => Promise<any>;
 
 export class RunStep extends CompositeAction {
 	protected from: number;
@@ -99,7 +100,7 @@ export class RunStep extends CompositeAction {
 		while (current <= this.to) {
 			this.toStop = false;
 			//1,3,5,10
-			const range: StepRange = { from: current, to: this.to, count };
+			let range: StepRange = { from: current, to: this.to, count, limit: this.limit };
 			//截断
 			if (this.step > 0) {
 				range.to = Math.min(current + this.step - 1, this.to);
@@ -110,10 +111,10 @@ export class RunStep extends CompositeAction {
 			}
 
 			// before
-			if (this.onBeforeStep) await this.onBeforeStep(context, range, this);
+			if (this.onBeforeStep) await this.onBeforeStep(this, context, range);
 			if (!this.isPending()) break;
 			if (this.toStop) {
-				if (this.onAfterStep) await this.onAfterStep(context, range, this);
+				if (this.onAfterStep) await this.onAfterStep(this, context, range);
 				break;
 			}
 
@@ -124,7 +125,7 @@ export class RunStep extends CompositeAction {
 			(this.queueAction as any).parent = this;
 			if (this.queueName) this.queueAction.setName(this.queueName);
 			for (let i = range.from; i <= range.to; i++) {
-				let result = this.handlerFactory(context, i, range, this);
+				let result = this.handlerFactory(this, context, i, range);
 				let af: Action | Func;
 				let a: Action;
 				//
@@ -147,7 +148,7 @@ export class RunStep extends CompositeAction {
 			this.queueAction = undefined;
 
 			// after
-			if (this.onAfterStep) await this.onAfterStep(context, range, this);
+			if (this.onAfterStep) await this.onAfterStep(this, context, range);
 			if (!this.isPending()) break;
 			if (this.toStop) break;
 			if (this.limit > 0 && count >= this.limit) break;
