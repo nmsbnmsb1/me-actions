@@ -138,7 +138,7 @@ export class RunQueue extends CompositeAction {
 			return;
 		}
 		for (let i = 0; i < this.children.length; i++) {
-			const action = this.running[i];
+			const action = this.children[i];
 			if (typeof a === 'string' && a !== action.getName()) continue;
 			if (a !== action) continue;
 			//
