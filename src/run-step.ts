@@ -25,6 +25,7 @@ export class RunStep extends CompositeAction {
 	protected onBeforeStep: OnStep;
 	protected handlerFactory: StepHandlerFactory;
 	protected onAfterStep: OnStep;
+	protected stepErrHandler: number;
 	//
 	protected queueAction!: RunQueue;
 	protected queueName: string;
@@ -38,7 +39,8 @@ export class RunStep extends CompositeAction {
 		onBeforeStep?: OnStep,
 		handlerFactory?: StepHandlerFactory,
 		onAfterStep?: OnStep,
-		errHandler: number = ErrHandler.RejectAllDone
+		errHandler: number = ErrHandler.RejectAllDone,
+		stepErrHandler: number = ErrHandler.RejectAllDone
 	) {
 		super(errHandler);
 		this.from = from;
@@ -48,6 +50,11 @@ export class RunStep extends CompositeAction {
 		this.onBeforeStep = onBeforeStep;
 		this.handlerFactory = handlerFactory;
 		this.onAfterStep = onAfterStep;
+		this.stepErrHandler = stepErrHandler;
+	}
+	public setStepErrHandler(stepErrHandler: number) {
+		this.stepErrHandler = stepErrHandler;
+		return this;
 	}
 	public setValues(from = 0, step = 0, limit = 0, to = 0) {
 		this.from = from;
@@ -95,11 +102,12 @@ export class RunStep extends CompositeAction {
 	//
 	protected async doStart(context: any) {
 		let count = 0;
-		let e: Error;
+		let err: Error;
 		let current = this.from;
 		while (current <= this.to) {
 			this.toStop = false;
 			//1,3,5,10
+			let stepErr: Error;
 			let range: StepRange = { from: current, to: this.to, count, limit: this.limit };
 			//截断
 			if (this.step > 0) {
@@ -121,7 +129,7 @@ export class RunStep extends CompositeAction {
 			// pending
 			range.count = count = count + (range.to - range.from + 1);
 			//
-			this.queueAction = new RunQueue(0, RunQueue.StopHandlerAuto, this.errHandler);
+			this.queueAction = new RunQueue(0, RunQueue.StopHandlerAuto, this.stepErrHandler);
 			(this.queueAction as any).parent = this;
 			if (this.queueName) this.queueAction.setName(this.queueName);
 			for (let i = range.from; i <= range.to; i++) {
@@ -142,11 +150,16 @@ export class RunStep extends CompositeAction {
 			//
 			if (!this.isPending()) break;
 			if (this.queueAction.isRejected()) {
-				if (!e) e = this.queueAction.getError();
-				if (this.errHandler === ErrHandler.RejectImmediately) throw e;
+				stepErr = this.queueAction.getError() || new Error('Step has unknown error');
+				if (!err) err = stepErr;
 			}
 			this.queueAction = undefined;
-
+			//错误处理
+			if (stepErr && this.errHandler !== ErrHandler.Ignore) {
+				if (this.errHandler === ErrHandler.RejectImmediately) {
+					throw stepErr;
+				}
+			}
 			// after
 			if (this.onAfterStep) await this.onAfterStep(this, context, range);
 			if (!this.isPending()) break;
@@ -157,7 +170,7 @@ export class RunStep extends CompositeAction {
 			if (current > this.to) break;
 		}
 		// console.log("done");
-		if (e && this.errHandler !== ErrHandler.Ignore) throw e;
+		if (err && this.errHandler === ErrHandler.RejectAllDone) throw err;
 	}
 
 	protected async doStop(context: any) {

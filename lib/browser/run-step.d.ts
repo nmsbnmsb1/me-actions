@@ -17,10 +17,12 @@ export declare class RunStep extends CompositeAction {
     protected onBeforeStep: OnStep;
     protected handlerFactory: StepHandlerFactory;
     protected onAfterStep: OnStep;
+    protected stepErrHandler: number;
     protected queueAction: RunQueue;
     protected queueName: string;
     protected toStop: boolean;
-    constructor(from?: number, step?: number, limit?: number, to?: number, onBeforeStep?: OnStep, handlerFactory?: StepHandlerFactory, onAfterStep?: OnStep, errHandler?: number);
+    constructor(from?: number, step?: number, limit?: number, to?: number, onBeforeStep?: OnStep, handlerFactory?: StepHandlerFactory, onAfterStep?: OnStep, errHandler?: number, stepErrHandler?: number);
+    setStepErrHandler(stepErrHandler: number): this;
     setValues(from?: number, step?: number, limit?: number, to?: number): this;
     setOnBeforeStep(fn: OnStep): this;
     setHandlerFactory(fn: StepHandlerFactory): this;
